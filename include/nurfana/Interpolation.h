@@ -19,7 +19,6 @@ namespace nurfana
 {
 
   class TimeDomainRepresentation; 
-  class EvenRepresentation; 
 
   typedef enum InterpolationType
   {
