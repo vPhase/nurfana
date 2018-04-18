@@ -3,6 +3,8 @@
 
 /** Thread-safe FFTW3 interface */ 
 
+#include <complex> 
+
 namespace nurfana
 {
   namespace fft 
