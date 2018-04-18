@@ -1,0 +1,64 @@
+##############################################
+#  User Configurable options for nurfana    #
+#  Copy  this file to m.config and modify   #
+##############################################
+
+
+####################################
+## phased array related settings  ##
+####################################
+HAVE_NUPHASEROOT:=yes                            ## Enable Phased-Array Support
+NUPHASE_INSTALL_DIR?=/usr/local                 ## Note that this only sets it if not defined in environment
+NUPHASEROOT_INCDIR:=${NUPHASE_INSTALL_DIR}/include ## Include directory for nuphaseroot
+NUPHASEROOT_LIBDIR:=${NUPHASE_INSTALL_DIR}/lib     ## Lib directory for nuphaseroot 
+
+
+##########################
+## ARA related settings ##
+##########################
+HAVE_ARAROOT:=yes                                ## Enable AraRoot support
+ARA_UTIL_INSTALL_DIR?=/usr/local                ## Note that this only sets it if not defined in environment
+ARAROOT_INCDIR:=${ARA_UTIL_INSTALL_DIR}/include    ## ARA include directory
+ARAROOT_LIBDIR:=${ARA_UTIL_INSTALL_DIR}/lib        ## ARA lib directory
+
+
+############################
+## Installation  Settings ##
+############################
+PREFIX:=${NUPHASE_INSTALL_DIR}                  ## Prefix for make install 
+
+
+##################################
+# Compilation / Linking options  #
+#  experts only                  #
+##################################
+
+CXX?=g++                                       ## c++ compiler (will be overwritten by environment) 
+LIBTOOL?=libtool                               ## libtool is used to handle the platform dependent stuff
+CXXFLAGS:= -pthread -std=gnu++11 -m64           ## compilation flags. You don't need e.g. -fPIC here because libtool handles that   
+CXXFLAGS+=-Os -ftree-vectorize -g -flto        ## optimization /debug flags
+LDFLAGS:= -flto -g -Os -m64                     ## linker flags                                 
+
+
+##################################################
+############3rd party library settings ############
+###################################################3
+
+### ROOT SETUP### 
+ROOTCLING:=`root-config --bindir`/rootcling 
+ROOT_INCDIR:=`root-config --incdir` 
+ROOT_LIBS:=`root-config --glibs` 
+
+### GSL Settings###
+GSL_INCDIR := `pkg-config --variable=includedir gsl`
+GSL_LIBS := `pkg-config --libs gsl` 
+
+###FFTW3 settings###
+FFTW3_INCDIR:=`pkg-config --variable=includedir fftw3`
+FFTW3_LIBS:= `pkg-config --libs fftw3` 
+
+
+
+
+
+
