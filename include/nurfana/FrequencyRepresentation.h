@@ -9,12 +9,15 @@
 #include <vector> 
 #include "TObject.h" 
 #include "TMutex.h" 
+#include "TAttFill.h" 
+#include "TAttLine.h" 
+#include "TAttMarker.h" 
 #include <complex> 
 
 namespace nurfana
 {
   class EvenRepresentation; 
-  class FrequencyRepresentation : public TObject
+  class FrequencyRepresentation : public TObject, TAttFill, TAttLine, TAttMarker
   {
 
     public: 
