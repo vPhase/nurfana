@@ -18,9 +18,7 @@
 #pragma link C++ class nurfana::UnevenRepresentation+; 
 #pragma link C++ class nurfana::Waveform+; 
 #pragma link C++ class nurfana::Antenna+; 
-#pragma link C++ class nurfana::Event+; 
 #pragma link C++ class nurfana::Response+; 
-#pragma link C++ class nurfana::Mapper+; 
 
 
 

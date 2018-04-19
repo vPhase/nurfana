@@ -3,9 +3,9 @@
 ###  To configure, copy m.config.example to m.config 
 ###
 ###  I may switch to CMake or a fancy built system eventually, but
-###  but I really dislike CMake and nothing else is widely deployed. 
+###  but I really dislike CMake and nothing else is widely deployed 
+###   (other than autotools...)
 ##########################################
-
 
 
 ## These are the files that must be built 
@@ -14,7 +14,6 @@ SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
 						Interpolation.h TimeRepresentation.h Waveform.h 
-
 
 all: shared 
 
@@ -47,7 +46,7 @@ DEPFLAGS = -MT $@ -MMD -MF $(BUILDDIR)/$(*F).Td
 
 SHLIB=so 
 SHFLAG=-shared
-LDFLAGS+= -rpath,$(PREFIX)/lib
+LDFLAGS+= -Wl,-rpath=$(PREFIX)/lib
 
 ifeq ($(PLATFORM),macosx)
 	SHLIB=dylib
@@ -72,11 +71,9 @@ ifeq ($(HAVE_ARAROOT),yes)
 endif
 
 
-
 $(BUILDDIR):
 	@mkdir -p $@
 
-%.o: %.cc
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo Compiling  [$(*F)] 
@@ -93,11 +90,11 @@ $(BUILDDIR)/libnurfana.$(SHLIB): $(OBJS) $(DICT) $(BUILD_SYSTEM) | $(BUILDDIR)
 ## Generate the dictionary 
 $(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo Generating ROOT dictionary 
-	@$(ROOTCLING) -f $@ -c -p $(INCFLAGS)  $(INCLUDES) LinkDef.h 
+	@$(ROOTCLING) -f $@ -c -p $(INCFLAGS) -I. $(INCLUDES) LinkDef.h 
 
 $(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C 
 	@echo Compiling ROOT dictionary
-	@$(CXX) -c $(CXXFLAGS) $< -o $@
+	@$(CXX) -c $(CXXFLAGS) -I. $< -o $@
 
 # Empty prerequisite to avoid complaining about missing .d files on first compile
 $(BUILDDIR)/%.d: ; 
@@ -105,7 +102,7 @@ $(BUILDDIR)/%.d: ;
 install: 
 	@echo Installing to $(PREFIX) 
 	@install -c $(BUILDDIR)/libnurfana.so $(PREFIX)/lib 
-	@install -c $(BUILDDIR)/libnurfana.pcm $(PREFIX)/lib 
+	@install -c $(BUILDDIR)/*.pcm $(PREFIX)/lib 
 	@install -c $(INCLUDES) $(PREFIX)/include/nurfana
 
 doc: 
