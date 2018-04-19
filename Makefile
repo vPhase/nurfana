@@ -9,7 +9,7 @@
 
 
 ## These are the files that must be built 
-SRCS := FFT.cc FrequencyReprsentation.cc Interpolation.cc 
+SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc 
 
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
@@ -24,26 +24,40 @@ m.config:
 
 include m.config 
 
-.PHONY: build_system shared clean install all doc
+.PHONY: shared clean install all doc
 
 
 # Checks to make sure build system is up to date
-build_system: Makefile m.config
+BUILD_SYSTEM:= Makefile m.config
+
+
+PLATFORM := $(shell root-config --platform) 
 
 
 BUILDDIR=build
 SRCDIR=src
+INCDIR=include/nurfana
 
 LIBS=${ROOT_LIBS} ${GSL_LIBS} ${FFTW3_LIBS} 
-CXXFLAGS +=-pthread -std=gnu++11
+CXXFLAGS +=-pthread -std=gnu++11 -fPIC 
 INCFLAGS := -Iinclude -I${GSL_INCDIR} -I${ROOT_INCDIR} -I${FFTW3_INCDIR}  
 CXXFLAGS += $(INCFLAGS) 
-DEPFLAGS = -MT $@ -MD -MP -MF $(BUILDDIR)/$(*F).Td
+DEPFLAGS = -MT $@ -MMD -MF $(BUILDDIR)/$(*F).Td
 
 
-OBJS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.lo} ) 
+SHLIB=so 
+SHFLAG=-shared
+LDFLAGS+= -rpath,$(PREFIX)/lib
+
+ifeq ($(PLATFORM),macosx)
+	SHLIB=dylib
+	SHFLAG=-dynamic
+endif
+
+OBJS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.o} ) 
 DEPS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.d} ) 
-DICT = nurfanaDict.lo
+INCLUDES := $(addprefix $(INCDIR)/, $(INCLUDES))
+DICT = $(BUILDDIR)/nurfanaDict.o
 
 
 ifeq ($(HAVE_NUPHASEROOT),yes)
@@ -62,34 +76,37 @@ endif
 $(BUILDDIR):
 	@mkdir -p $@
 
-$(BUILDDIR)/%.lo: $(SRCDIR)/%.cc $(BUILDDIR)/%.d build_system | $(BUILDDIR) 
-	@echo Compiling $(*F) 
-	@$(LIBTOOL) --mode=compile $(CXX) $(DEPFLAGS) -c $(CXXFLAGS) $< -o $@
+%.o: %.cc
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cc 
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cc $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR) 
+	@echo Compiling  [$(*F)] 
+	@$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $< -o $@
 	@mv -f $(BUILDDIR)/$(*F).Td $(BUILDDIR)/$(*F).d && touch $@ 
 
 
-shared: $(BUILDDIR)/libnurfana.la 
+shared: $(BUILDDIR)/libnurfana.$(SHLIB)  
 
-$(BUILDDIR)/libnurfana.la: $(OBJS) $(DICT) build_system | $(BUILDDIR) 
+$(BUILDDIR)/libnurfana.$(SHLIB): $(OBJS) $(DICT) $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo Building shared library
-	@$(LIBTOOL) --mode=link $(CXX) $(LDFLAGS) -avoid-version -rpath=$(PREFIX)/lib  $(OBJS) $(DICT) $(LIBS) -o $@ 
+	@$(CXX) $(SHFLAG) $(LDFLAGS) $(OBJS) $(DICT) $(LIBS) -o $@ 
 
 ## Generate the dictionary 
-$(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h build_system | $(BUILDDIR) 
+$(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo Generating ROOT dictionary 
-	@$(ROOTCLING) -f R@ -c -p $(INCFLAGS)  $(INCLUDES) LinkDef.h 
+	@$(ROOTCLING) -f $@ -c -p $(INCFLAGS)  $(INCLUDES) LinkDef.h 
 
-$(BUILDDIR)/nurfanaDict.lo: $(BUILDDIR)/nurfanaDict.C 
+$(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C 
 	@echo Compiling ROOT dictionary
-	@$(LIBTOOL) --mode=compile $(CXX) -c $(CXXFLAGS) $< -o $@
+	@$(CXX) -c $(CXXFLAGS) $< -o $@
 
 # Empty prerequisite to avoid complaining about missing .d files on first compile
 $(BUILDDIR)/%.d: ; 
 
 install: 
 	@echo Installing to $(PREFIX) 
-	@$(LIBTOOL) --mode=install install -c $(BUILDDIR)/libnurfana.la $(PREFIX)/lib 
-	@install -c $(INCLUDES) $(PREFIX)/include
+	@install -c $(BUILDDIR)/libnurfana.so $(PREFIX)/lib 
+	@install -c $(BUILDDIR)/libnurfana.pcm $(PREFIX)/lib 
+	@install -c $(INCLUDES) $(PREFIX)/include/nurfana
 
 doc: 
 	@echo "make doc not implemented yet" 

@@ -10,11 +10,14 @@ namespace nurfana
   {
 
     /* Faster than libmath floor , needed for wrap */ 
-    inline int fast_floor(double val) return { (int) val - (val < (int) val); } 
+    inline int fast_floor(double val) 
+    { 
+      return  (int) val - (val < (int) val); 
+    } 
 
     inline double wrap(double val, double period, double center) 
     {
-      return val - period * fast_floor((val-center+period/2)/period); }
+      return val - period * fast_floor((val-center+period/2)/period); 
     }
 
     inline double wrap(double val, double period = 2*TMath::Pi())
@@ -31,7 +34,7 @@ namespace nurfana
         double extra = vals[i] - vals[i-1] + adjust; 
         if (extra  > period/2) adjust -= period; 
         else if (extra < -period/2) adjust += period; 
-        vals[i] += adjsut; 
+        vals[i] += adjust; 
       }
     }
   }

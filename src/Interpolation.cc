@@ -1,11 +1,16 @@
 #include "Math/Interpolator.h" 
+#include "TMutex.h" 
+
+#include "nurfana/Interpolation.h" 
+#include "nurfana/TimeRepresentation.h" 
 
 static TMutex setter; 
-static InterpolationType default_interpolation; 
-static void * default_opt; 
 
 namespace nurfana 
 {
+
+  static InterpolationType default_interpolation; 
+  static void * default_opt; 
 
   Interpolator * make(InterpolationType t, void * opt) 
   {
@@ -20,20 +25,24 @@ namespace nurfana
       case kInterpLinear:
         return new LinearInterpolator;
       default: 
-        return make(kInterpDefault); 
+        return make(kInterpDefault,0); 
     }
   }
 
-  void setDefaultInerpolator(InterpolationType t, void * opt)
+  void setDefaultInterpolator(InterpolationType t, void * opt)
   {
-    TLockGuard(&setter); //make sure these are set atomically 
+    TLockGuard l(&setter); //make sure these are set atomically 
     default_interpolation = t; 
     default_opt = opt; 
   }
 
 
+  void Interpolator::eval(TimeRepresentation * out) const
+  { 
+    evalMany (out->N(), out->t(), out->updateY(),true);
+  } 
 
-  double * LinearInterpolator::evalMany(size_t N, const double * t, double * y = 0, bool sorted) const
+  double * LinearInterpolator::evalMany(size_t N, const double * t, double * y, bool sorted) const
   {
     if (!y) y = new double[N]; 
 
@@ -49,7 +58,7 @@ namespace nurfana
       }
       else if (lower_bound == input_->N()) 
       {
-        y[i] = y_[input_->N()-1]; 
+        y[i] = input_->y(input_->N()-1);
       }
       else
       {
@@ -63,7 +72,7 @@ namespace nurfana
     return y; 
   }
 
-  GSLInterpolator::GSLInterpolator(gsl_interp_type * type)
+  GSLInterpolator::GSLInterpolator(const gsl_interp_type * type)
   {
     if (!type) type = gsl_interp_akima; 
     gsl_t_ = type; 
@@ -76,16 +85,16 @@ namespace nurfana
   {
     if (gsl_s_) 
     {
-      gsl_interp_free(gsl_s_); 
+      gsl_spline_free(gsl_s_); 
       gsl_interp_accel_free(gsl_a_); 
     }
   }
 
-  double * GSLInterpolator::evalMany(size_t N, const double * t, double *y, bool sorted) const;
+  double * GSLInterpolator::evalMany(size_t N, const double * t, double *y, bool sorted) const
   {
     if (!y) y = new double[N]; 
 
-    TLockGuard lock(m_); //probably the accelerator is not threadsafe 
+    TLockGuard lock(&m_); //probably the accelerator is not threadsafe 
 
     //initialize the spline if it's not initialized already 
     if (!gsl_s_) 
@@ -96,20 +105,20 @@ namespace nurfana
          return y; 
       }
 
-      if (!gsl_a) gsl_a_ = gsl_interp_accel_alloc(); 
+      if (!gsl_a_) gsl_a_ = gsl_interp_accel_alloc(); 
       else gsl_interp_accel_reset(gsl_a_); 
 
-      gsl_s = gsl_spline_alloc(gsl_t_, input_->N()); 
+      gsl_s_ = gsl_spline_alloc(gsl_t_, input_->N()); 
       gsl_spline_init(gsl_s_, input_->t(), input_->y(), input_->N()); 
     }
 
     for (size_t i = 0; i < N; i++)
     {
-      y[i] = gsl_spline_eval(spline, t[i], gsl_a_); 
+      y[i] = gsl_spline_eval(gsl_s_, t[i], gsl_a_); 
     }
   }
 
-  virtual void GSLInterpolator::setInput(const TimeDomainRepresentation * in)
+  void GSLInterpolator::setInput(const TimeRepresentation * in)
   {
     Interpolator::setInput(in); 
 

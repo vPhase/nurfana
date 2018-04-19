@@ -13,18 +13,18 @@
 
 #include <vector> 
 #include "TMutex.h" 
-#include <gsl/gsl_interp.h> 
+#include <gsl/gsl_spline.h> 
 
 namespace nurfana
 {
 
-  class TimeDomainRepresentation; 
+  class TimeRepresentation; 
 
-  typedef enum InterpolationType
+  enum InterpolationType
   {
-    kInterpDefault; 
-    kInterpLinear; 
-    kInterpGSL; 
+    kInterpDefault, 
+    kInterpLinear,
+    kInterpGSL 
   }; 
 
 
@@ -33,7 +33,7 @@ namespace nurfana
     public: 
       /** Set the input of the interpolator. This theoretically can be expensive
        * depending on what the interpolator has to do */ 
-      virtual void setInput(const TimeDomainRepresentation * in)  { input_ = in; }
+      virtual void setInput(const TimeRepresentation* input)  { input_ = input; }
 
       /** Interpolate the input at value t */ 
       double eval(double t) const { double answer; evalMany(1,&t,&answer); return answer; }
@@ -43,8 +43,8 @@ namespace nurfana
 
       virtual double * evalMany(size_t N, const double * t, double *y = NULL, bool sorted = true) const = 0;
 
-      /** Takes the times from a TimeDomainRepresentation and fills the values */ 
-      void eval(TimeDomainRepresentation * out) const { return evalMany (out->N(), out->t(), out->updateY(),true); 
+      /** Takes the times from a TimeRepresentation and fills the values */ 
+      void eval(TimeRepresentation * out) const; 
 
       virtual ~Interpolator() { ;}
 
@@ -61,7 +61,7 @@ namespace nurfana
       static void setDefaultInterpolator(InterpolationType t, void * opt = NULL); 
 
     protected: 
-      const TimeDomainRepresentation * input_; 
+      const TimeRepresentation * input_; 
   }; 
 
 
@@ -71,25 +71,26 @@ namespace nurfana
   {
 
     public: 
-      virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted) const ;
+      virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted = true) const ;
   };
 
   /** Interpolator based on GSL classes */ 
   class GSLInterpolator : public Interpolator
   {
     public: 
-      GSLInterpolator(gsl_interp_type * type = gsl_interp_akima); 
-      virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted) const ;
+      GSLInterpolator(const gsl_interp_type * type = gsl_interp_akima); 
+      virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted = true) const ;
+      virtual void setInput(const TimeRepresentation* input);
       virtual ~GSLInterpolator() ; 
     protected: 
       mutable gsl_spline * gsl_s_; 
-      mutable gsl_interp_type * gsl_t_; 
+      const gsl_interp_type * gsl_t_; 
       mutable gsl_interp_accel * gsl_a_; 
       mutable TMutex m_; 
   }; 
 
 
 
- 
+}
 
 #endif

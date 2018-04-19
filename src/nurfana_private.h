@@ -2,18 +2,19 @@
 #define _nurfana_private_h
 
 #include <string.h> 
+#include <string> 
 
 /** Private utility methods, not exported */ 
 namespace nurfana
 {
 
-    bool consume(Option_t * opt, const char * what) 
+    bool consume(std::string & opt, const char * what) 
     {
-      char * where = strstr(opt,what); 
+       size_t where = opt.find(what); 
 
-      if (where) 
+      if (where!=std::string::npos) 
       {
-        for (int i = 0; i < strlen(what); i++) where[i]=' '; 
+        for (size_t i = where; i < where+strlen(what); i++) opt[i]=' '; 
         return true; 
       }
       return false; 
