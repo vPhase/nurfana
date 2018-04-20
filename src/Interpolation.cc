@@ -3,6 +3,7 @@
 
 #include "nurfana/Interpolation.h" 
 #include "nurfana/TimeRepresentation.h" 
+#include <algorithm> 
 
 static TMutex setter; 
 
@@ -12,7 +13,7 @@ namespace nurfana
   static InterpolationType default_interpolation; 
   static void * default_opt; 
 
-  Interpolator * make(InterpolationType t, void * opt) 
+  Interpolator * Interpolator::make(InterpolationType t, void * opt) 
   {
 
     switch(t)
@@ -25,7 +26,7 @@ namespace nurfana
       case kInterpLinear:
         return new LinearInterpolator;
       default: 
-        return make(kInterpDefault,0); 
+        return make(kInterpDefault,opt); 
     }
   }
 
@@ -94,6 +95,15 @@ namespace nurfana
   {
     if (!y) y = new double[N]; 
 
+    double *t_sorted = 0; 
+
+    if (!sorted) 
+    {
+      t_sorted = new double[N]; 
+      std::partial_sort_copy(t,t+N, t_sorted, t_sorted+N); 
+      t = t_sorted; 
+    }
+
     TLockGuard lock(&m_); //probably the accelerator is not threadsafe 
 
     //initialize the spline if it's not initialized already 
@@ -116,6 +126,10 @@ namespace nurfana
     {
       y[i] = gsl_spline_eval(gsl_s_, t[i], gsl_a_); 
     }
+
+    if (t_sorted) delete [] t_sorted; 
+
+    return y; 
   }
 
   void GSLInterpolator::setInput(const TimeRepresentation * in)

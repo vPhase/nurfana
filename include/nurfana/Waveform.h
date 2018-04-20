@@ -26,9 +26,10 @@ class TH1;
 namespace nurfana
 {
   class Waveform : 
-     public TNamed, TAttLine , TAttMarker, TAttFill
+     public TNamed, public TAttLine , public TAttMarker, public TAttFill
   {
 
+#ifdef NOTDONEYET
 
     public: 
 
@@ -87,8 +88,10 @@ namespace nurfana
       mutable Waveform *_hilbert; 
       mutable Waveform *_envelope; 
 
+#endif 
       ClassDef(Waveform,1); 
   }; 
 }
+
 
 #endif

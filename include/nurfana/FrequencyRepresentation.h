@@ -17,7 +17,7 @@
 namespace nurfana
 {
   class EvenRepresentation; 
-  class FrequencyRepresentation : public TObject, TAttFill, TAttLine, TAttMarker
+  class FrequencyRepresentation : public TObject, public TAttFill, public TAttLine, public TAttMarker
   {
 
     public: 

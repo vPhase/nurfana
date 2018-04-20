@@ -57,7 +57,7 @@ namespace nurfana
       fftw_import_wisdom_from_filename(f); 
     }
 
-    int forward(size_t N, const double * y, std::complex<double> *Y) 
+    void forward(size_t N, const double * y, std::complex<double> *Y) 
     {
       fft_setup & s = setup(N); 
       memcpy(s.y, y, N * sizeof(double)); 
@@ -65,7 +65,7 @@ namespace nurfana
       memcpy(Y, s.Y, (N/2 + 1) * sizeof(fftw_complex)); 
     }
 
-    int inverse(size_t N, const std::complex<double> * Y, double * y) 
+    void inverse(size_t N, const std::complex<double> * Y, double * y) 
     {
       fft_setup & s = setup(N); 
       memcpy(s.Y, Y, (N/2 + 1) * sizeof(fftw_complex)); 

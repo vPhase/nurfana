@@ -9,11 +9,11 @@
 
 
 ## These are the files that must be built 
-SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc 
+SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc
 
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
-						Interpolation.h TimeRepresentation.h Waveform.h 
+						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h
 
 all: shared 
 
@@ -38,7 +38,7 @@ SRCDIR=src
 INCDIR=include/nurfana
 
 LIBS=${ROOT_LIBS} ${GSL_LIBS} ${FFTW3_LIBS} 
-CXXFLAGS +=-pthread -std=gnu++11 -fPIC 
+CXXFLAGS +=-pthread -std=gnu++11 -fPIC -Wall -Wextra 
 INCFLAGS := -Iinclude -I${GSL_INCDIR} -I${ROOT_INCDIR} -I${FFTW3_INCDIR}  
 CXXFLAGS += $(INCFLAGS) 
 DEPFLAGS = -MT $@ -MMD -MF $(BUILDDIR)/$(*F).Td
@@ -46,7 +46,7 @@ DEPFLAGS = -MT $@ -MMD -MF $(BUILDDIR)/$(*F).Td
 
 SHLIB=so 
 SHFLAG=-shared
-LDFLAGS+= -Wl,-rpath=$(PREFIX)/lib
+LDFLAGS+= -Wl,-rpath=$(PREFIX)/lib -Wl,-z,defs 
 
 ifeq ($(PLATFORM),macosx)
 	SHLIB=dylib

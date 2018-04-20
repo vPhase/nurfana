@@ -13,10 +13,10 @@ namespace nurfana
     void setWisdomFile(const char * f); 
 
     /** Forward FFT */ 
-    int forward(size_t N, const double * y, std::complex<double> * Y); 
+    void forward(size_t N, const double * y, std::complex<double> * Y); 
 
     /** Inverse FFT. N is the time domain length (i.e. Y is N/2+1 long) */ 
-    int inverse(size_t N, const std::complex<double> * Y, double * y); 
+    void inverse(size_t N, const std::complex<double> * Y, double * y); 
   }
 }
 

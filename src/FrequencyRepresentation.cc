@@ -24,7 +24,7 @@ namespace nurfana
   }
 
   FrequencyRepresentation::FrequencyRepresentation(const EvenRepresentation & even) 
-    : Nt_(even.N()), t0_(even.t0()), df_( 1./(even.N() * even.dt())), Y_(even.N()/2+1)
+    : TAttFill(even), TAttLine(even), TAttMarker(even), Nt_(even.N()), t0_(even.t0()), df_( 1./(even.N() * even.dt())), Y_(even.N()/2+1)
   {
      fft::forward(Nt_, even.y(), &Y_[0]); 
      invalidate(); 

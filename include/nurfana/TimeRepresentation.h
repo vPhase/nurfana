@@ -1,6 +1,7 @@
 #ifndef _NURFANA_TIME_REPRESENTATION_H 
 #define _NURFANA_TIME_REPRESENTATION_H 
 
+
 /**  Waveforms in the time domain may either be represented by an
  * UnevenRepresentation (which is not necessarily uneven, but the t's and y's
  * are both defined) or an EvenRepresentation (where all samples are eventy spaced 
@@ -12,8 +13,11 @@
 #include <vector> 
 #include "TObject.h" 
 #include "nurfana/Interpolation.h" 
+#include "TAttFill.h" 
+#include "TAttLine.h" 
+#include "TAttMarker.h" 
+#include "TMutex.h" 
 class TGraph; 
-class TH1; 
 
 namespace nurfana
 {
@@ -21,7 +25,7 @@ namespace nurfana
   class FrequencyRepresentation; 
 
   /** Virtual parent class for both Uneven and EvenReRepresentation */ 
-  class TimeRepresentation : public TObject
+  class TimeRepresentation : public TObject, public TAttLine, public TAttMarker, public TAttFill 
   {
 
     public: 
@@ -31,7 +35,11 @@ namespace nurfana
       
       /** Returns the y-values of the samples */ 
       const double * y() const { return &y_[0]; } 
-      const double  y(size_t i) const { return y_[i]; } 
+      double y(size_t i) const { return y_[i]; } 
+      void fillY(double * vals) const; 
+
+      double operator[](size_t i) { return y(i); } 
+      
 
       /** Resize to N. If longer than current size, new samples will all be zero */ 
       virtual void resize(size_t N) { y_.resize(N); } 
@@ -41,6 +49,11 @@ namespace nurfana
 
       /** Returns the time at the given sample */ 
       virtual double t(size_t i) const { return t_[i]; }
+
+      /** Returns an array of the sample times */ 
+      virtual const double * t() const { return &t_[0];}; 
+
+      virtual void fillT(double *t) const; 
 
       /** Returns the difference between a sample and the next sample. No range checking is performed, so will cause problems for i == N()-1. */ 
       virtual double dt(size_t i) const { return  t_[i+1] - t_[i]; }
@@ -53,14 +66,16 @@ namespace nurfana
        **/ 
       virtual size_t lower_bound(double t, size_t start = 0) const; 
 
-      /** Returns an array of the sample times */ 
-      virtual const double * t() const; 
 
       void setInterpolatorType(InterpolationType t, void * opt); 
       const Interpolator * interpolator() const { return interp_; }
+      virtual void Draw(Option_t * opt) ;
 
     protected: 
       TimeRepresentation();  
+      TimeRepresentation(const TimeRepresentation & other);  
+      TimeRepresentation(const FrequencyRepresentation & other);  
+      virtual ~TimeRepresentation(); 
       std::vector<double> y_; 
       mutable std::vector<double> t_; /**This is mutable because it may be cached */
       virtual void invalidate() { interp_->setInput(this); } 
@@ -77,7 +92,6 @@ namespace nurfana
     public: 
           UnevenRepresentation(size_t N, const double * t, const double * y); 
           UnevenRepresentation(const TGraph & g);
-          UnevenRepresentation(const TH1 & h); 
           UnevenRepresentation (const EvenRepresentation & even); 
           virtual double * updateT() {  return &t_[0]; }
 
@@ -92,8 +106,7 @@ namespace nurfana
     public: 
 
       EvenRepresentation(size_t N, const double * y, double dt, double t0 = 0); 
-      EvenRepresentation(const std::vector<double> & y, double dt, double t0); 
-      EvenRepresentation (const UnevenRepresentation & uneven); 
+      EvenRepresentation (const UnevenRepresentation & uneven, double dt = 0); 
       EvenRepresentation (const FrequencyRepresentation & freq); 
       virtual void resize(size_t N) { invalidateT();  y_.resize(N); } 
 
@@ -102,12 +115,14 @@ namespace nurfana
       double dt(size_t i = 0) const {(void) i;  return dt_; } 
       double t0() const { return t0_; } 
       virtual const double * t() const;
+      virtual void fillT(double *t) const; 
 
     protected: 
       double t0_; 
       double dt_; 
-      bool t_dirty_; 
+      volatile mutable bool t_dirty_; 
       void invalidateT() { t_dirty_ = true; }
+      mutable TMutex m_; 
       ClassDef(EvenRepresentation,1); 
   }; 
 
