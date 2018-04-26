@@ -16,7 +16,7 @@ namespace nurfana
   FrequencyRepresentation::FrequencyRepresentation(size_t N, 
                                                    const std::complex<double> * Y, 
                                                    double df, double t0) 
-    : Nt_(N), t0_(t0), df_(df), Y_(Y, Y + N/2+1)
+    : TNamed("freq","Frequency Representation"), Nt_(N), t0_(t0), df_(df), Y_(Y, Y + N/2+1)
   {
 
     invalidate(); 
@@ -24,7 +24,7 @@ namespace nurfana
   }
 
   FrequencyRepresentation::FrequencyRepresentation(const EvenRepresentation & even) 
-    : TAttFill(even), TAttLine(even), TAttMarker(even), Nt_(even.N()), t0_(even.t0()), df_( 1./(even.N() * even.dt())), Y_(even.N()/2+1)
+    : TNamed(even), TAttFill(even), TAttLine(even), TAttMarker(even), Nt_(even.N()), t0_(even.t0()), df_( 1./(even.N() * even.dt())), Y_(even.N()/2+1)
   {
      fft::forward(Nt_, even.y(), &Y_[0]); 
      invalidate(); 
@@ -47,7 +47,7 @@ namespace nurfana
 
   double FrequencyRepresentation::mag(size_t i, bool dB) const
   {
-   return dB ? 10 * TMath::Log10(std::abs(Y(i))) : std::abs(Y(i)); 
+   return dB ? ( std::abs(Y(i)) > 0 ?  10 * TMath::Log10(std::abs(Y(i)))  : -100.) : std::abs(Y(i)); 
   }
 
   void FrequencyRepresentation::mag(double * dest, bool dB) const
@@ -57,7 +57,7 @@ namespace nurfana
 
   double FrequencyRepresentation::norm(size_t i, bool dB) const
   {
-   return dB ? 20 * TMath::Log10(std::norm(Y(i))) : std::norm(Y(i)); 
+    return dB ? (std::norm(Y(i)) > 0 ? 20 * TMath::Log10(std::norm(Y(i))) : -100.) : std::norm(Y(i)); 
   }
 
   void FrequencyRepresentation::norm(double * dest, bool dB) const
@@ -128,8 +128,6 @@ namespace nurfana
     TAttMarker::Copy(*g); 
     TAttFill::Copy(*g); 
     f(g->GetX()); 
-    g->GetXaxis()->SetTitle("Frequency"); 
-    g->SetBit(kCanDelete); 
     std::string opt(option);
 
     if (consume(opt,"GROUPDELAY"))
@@ -155,7 +153,11 @@ namespace nurfana
       g->GetYaxis()->SetTitle(dB ? "Power (dB)" : "Power");
     }
 
-    g->Draw(option); 
+    g->SetName(GetName()); 
+    g->SetTitle(GetTitle()); 
+    g->GetXaxis()->SetTitle("Frequency"); 
+    g->SetBit(kCanDelete); 
+    g->Draw(opt.c_str()); 
   }
 
 
