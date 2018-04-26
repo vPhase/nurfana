@@ -7,7 +7,7 @@
 
 
 #include <vector> 
-#include "TObject.h" 
+#include "TNamed.h" 
 #include "TMutex.h" 
 #include "TAttFill.h" 
 #include "TAttLine.h" 
@@ -17,7 +17,7 @@
 namespace nurfana
 {
   class EvenRepresentation; 
-  class FrequencyRepresentation : public TObject, public TAttFill, public TAttLine, public TAttMarker
+  class FrequencyRepresentation : public TNamed, public TAttFill, public TAttLine, public TAttMarker
   {
 
     public: 
@@ -29,7 +29,7 @@ namespace nurfana
 
       FrequencyRepresentation(const EvenRepresentation & even); 
 
-      virtual void Draw(Option_t * option); 
+      virtual void Draw(Option_t * option = "MAG ALP DB"); 
 
       /** Number of samples in time domain */
       size_t Nt() const { return Nt_; } 

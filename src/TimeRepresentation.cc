@@ -23,22 +23,30 @@ namespace nurfana
 
 
   TimeRepresentation::TimeRepresentation() 
+    : TNamed("time", "Time Representation") 
   {
     interp_ = Interpolator::make(); 
   }
 
+  /* Note that this does NOT copy t_ or y_because we don't want to do that in the even case necessarily */
   TimeRepresentation::TimeRepresentation(const TimeRepresentation &other) 
-    : TObject(), TAttLine(other), TAttMarker(other), TAttFill(other) 
+    : TNamed(other), TAttLine(other), TAttMarker(other), TAttFill(other)
   {
-    interp_ = Interpolator::make(); 
+    interp_ = Interpolator::copy(*other.interp_); 
   }
 
   TimeRepresentation::TimeRepresentation(const FrequencyRepresentation &other) 
-    : TAttLine(other), TAttMarker(other), TAttFill(other) 
+    : TNamed (other), TAttLine(other), TAttMarker(other), TAttFill(other)
   {
     interp_ = Interpolator::make(); 
   }
 
+  TimeRepresentation::TimeRepresentation(TimeRepresentation && other) 
+   : TNamed(other), TAttLine(other), TAttMarker(other), TAttFill(other)
+  {
+    interp_ = other.interp_; 
+    other.interp_ = 0; 
+  }
 
 
   TimeRepresentation::~TimeRepresentation() 
@@ -60,13 +68,15 @@ namespace nurfana
   void TimeRepresentation::Draw(Option_t  * opt ) 
   {
     TGraph * g = new TGraph(N()); 
-    g->SetBit(kCanDelete); 
-    g->GetXaxis()->SetTitle("t"); 
+    g->SetName(GetName()); 
+    g->SetTitle(GetTitle()); 
     TAttLine::Copy(*g); 
     TAttMarker::Copy(*g); 
     TAttFill::Copy(*g); 
     fillT(g->GetX()); 
     fillY(g->GetY()); 
+    g->GetXaxis()->SetTitle("t"); 
+    g->SetBit(kCanDelete); 
     g->Draw(opt); 
   }
 
@@ -93,7 +103,27 @@ namespace nurfana
     even.fillT(&t_[0]); 
   }
 
+  UnevenRepresentation::UnevenRepresentation(const UnevenRepresentation & other) 
+    : TimeRepresentation(other) 
+  {
+    t_ = other.t_; 
+    y_ = other.y_; 
+  }
 
+  UnevenRepresentation & UnevenRepresentation::operator=(const UnevenRepresentation & assign) 
+  {
+    this->interp_ = Interpolator::copy(*assign.interp_); 
+    t_ = assign.t_; 
+    y_ = assign.y_; 
+    return *this; 
+  }
+
+  UnevenRepresentation::UnevenRepresentation(UnevenRepresentation && other) 
+    : TimeRepresentation(other) 
+  {
+    t_ = std::move(other.t_); 
+    y_ = std::move(other.y_); 
+  }
 
   /// Even ///
 
@@ -113,8 +143,8 @@ namespace nurfana
     size_t n = ceil((last-first)/dt_); 
     y_.resize(n); 
     interp_->evalMany(n, t(), updateY()); 
-
   }
+
 
   EvenRepresentation::EvenRepresentation(const FrequencyRepresentation & f) 
     :  t0_(f.t0()), dt_(1./(f.Nt() * f.df())), t_dirty_(true) 

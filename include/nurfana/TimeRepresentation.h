@@ -11,7 +11,7 @@
 
 
 #include <vector> 
-#include "TObject.h" 
+#include "TNamed.h" 
 #include "nurfana/Interpolation.h" 
 #include "TAttFill.h" 
 #include "TAttLine.h" 
@@ -25,7 +25,7 @@ namespace nurfana
   class FrequencyRepresentation; 
 
   /** Virtual parent class for both Uneven and EvenReRepresentation */ 
-  class TimeRepresentation : public TObject, public TAttLine, public TAttMarker, public TAttFill 
+  class TimeRepresentation : public TNamed, public TAttLine, public TAttMarker, public TAttFill 
   {
 
     public: 
@@ -69,11 +69,12 @@ namespace nurfana
 
       void setInterpolatorType(InterpolationType t, void * opt); 
       const Interpolator * interpolator() const { return interp_; }
-      virtual void Draw(Option_t * opt) ;
+      virtual void Draw(Option_t * opt = "") ;
 
     protected: 
       TimeRepresentation();  
       TimeRepresentation(const TimeRepresentation & other);  
+      TimeRepresentation(TimeRepresentation && other);  
       TimeRepresentation(const FrequencyRepresentation & other);  
       virtual ~TimeRepresentation(); 
       std::vector<double> y_; 
@@ -92,7 +93,14 @@ namespace nurfana
     public: 
           UnevenRepresentation(size_t N, const double * t, const double * y); 
           UnevenRepresentation(const TGraph & g);
-          UnevenRepresentation (const EvenRepresentation & even); 
+          UnevenRepresentation(const EvenRepresentation & even); 
+
+          UnevenRepresentation(const UnevenRepresentation & copy); 
+
+          UnevenRepresentation & operator=(const UnevenRepresentation & assign); 
+
+          UnevenRepresentation(UnevenRepresentation && move); 
+
           virtual double * updateT() {  return &t_[0]; }
 
     protected:
@@ -108,6 +116,9 @@ namespace nurfana
       EvenRepresentation(size_t N, const double * y, double dt, double t0 = 0); 
       EvenRepresentation (const UnevenRepresentation & uneven, double dt = 0); 
       EvenRepresentation (const FrequencyRepresentation & freq); 
+
+      EvenRepresentation (const EvenRepresentation & copy); 
+
       virtual void resize(size_t N) { invalidateT();  y_.resize(N); } 
 
       void setDT(double dt) { dt_ = dt; invalidateT(); } 
@@ -115,6 +126,7 @@ namespace nurfana
       double dt(size_t i = 0) const {(void) i;  return dt_; } 
       double t0() const { return t0_; } 
       virtual const double * t() const;
+      virtual double t(size_t i) const { return dt_ * i + t0_; }
       virtual void fillT(double *t) const; 
 
     protected: 
