@@ -48,6 +48,8 @@ SHLIB=so
 SHFLAG=-shared
 LDFLAGS+= -Wl,-rpath=$(PREFIX)/lib -Wl,-z,defs 
 
+
+## This is probably not everything that's needed. Will obviously need testing 
 ifeq ($(PLATFORM),macosx)
 	SHLIB=dylib
 	SHFLAG=-dynamic
@@ -58,7 +60,6 @@ DEPS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.d} )
 INCLUDES := $(addprefix $(INCDIR)/, $(INCLUDES))
 DICT = $(BUILDDIR)/nurfanaDict.o
 
-
 ifeq ($(HAVE_NUPHASEROOT),yes)
 	DEP_TARGETS+=nuphase
 	CXXFLAGS+= -DHAVE_NUPHASE -I${NUPHASEROOT_INCDIR}
@@ -67,7 +68,7 @@ endif
 ifeq ($(HAVE_ARAROOT),yes)
 	DEP_TARGETS+=ara
 	CXXFLAGS+= -DHAVE_ARA -I${ARAROOT_INCDIR} 
-	LIBS+=-L${ARAROOT_LIBDIR} -lAraRoot
+	LIBS+=-L${ARAROOT_LIBDIR} -lAraEvent
 endif
 
 
@@ -90,7 +91,7 @@ $(BUILDDIR)/libnurfana.$(SHLIB): $(OBJS) $(DICT) $(BUILD_SYSTEM) | $(BUILDDIR)
 ## Generate the dictionary 
 $(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo Generating ROOT dictionary 
-	@$(ROOTCLING) -f $@ -c -p $(INCFLAGS) -I. $(INCLUDES) LinkDef.h 
+	@$(ROOTCLING) -f $@ -c -p -I. -Iinclude/ $(INCLUDES) LinkDef.h 
 
 $(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C 
 	@echo Compiling ROOT dictionary
@@ -101,9 +102,10 @@ $(BUILDDIR)/%.d: ;
 
 install: 
 	@echo Installing to $(PREFIX) 
-	@install -c $(BUILDDIR)/libnurfana.so $(PREFIX)/lib 
-	@install -c $(BUILDDIR)/*.pcm $(PREFIX)/lib 
-	@install -c $(INCLUDES) $(PREFIX)/include/nurfana
+	@install -D -c $(BUILDDIR)/libnurfana.so $(PREFIX)/lib 
+	@install -D -c $(BUILDDIR)/*.pcm $(PREFIX)/lib 
+	@install -d $(PREFIX)/include/nurfana
+	@install -D -c $(INCLUDES) $(PREFIX)/include/nurfana
 
 doc: 
 	@echo "make doc not implemented yet" 
