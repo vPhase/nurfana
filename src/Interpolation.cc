@@ -13,7 +13,7 @@ namespace nurfana
   static InterpolationType default_interpolation; 
   static void * default_opt; 
 
-  Interpolator * Interpolator::make(InterpolationType t, void * opt) 
+  Interpolator * Interpolator::make(InterpolationType t, const void * opt) 
   {
 
     switch(t)

@@ -54,11 +54,14 @@ namespace nurfana
        *  the option specified with setDefaultInterpolator is used instead. 
        */
 
-      static Interpolator * make(InterpolationType t = kInterpDefault, void * opt = NULL ); 
+      static Interpolator * make(InterpolationType t = kInterpDefault, const void * opt = NULL ); 
+      static Interpolator * copy(const Interpolator & i) { return make(i.type(), i.opt()); } 
 
       /** Change the default interpolator. If opt is NULL, the default argument (if any ) will be used for an interpolator. 
        **/ 
-      static void setDefaultInterpolator(InterpolationType t, void * opt = NULL); 
+      static void setDefaultInterpolator(InterpolationType t, const void * opt = NULL); 
+      virtual InterpolationType type() const  = 0;
+      virtual const void * opt() const  = 0; 
 
     protected: 
       const TimeRepresentation * input_; 
@@ -72,6 +75,8 @@ namespace nurfana
 
     public: 
       virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted = true) const ;
+      virtual InterpolationType type() const { return kInterpLinear; } 
+      virtual const void * opt() const { return 0; } 
   };
 
   /** Interpolator based on GSL classes */ 
@@ -82,6 +87,8 @@ namespace nurfana
       virtual double * evalMany(size_t N, const double * t, double *y = 0, bool sorted = true) const ;
       virtual void setInput(const TimeRepresentation* input);
       virtual ~GSLInterpolator() ; 
+      virtual InterpolationType type() const { return kInterpGSL; } 
+      virtual const void * opt() const { return gsl_t_; } 
     protected: 
       mutable gsl_spline * gsl_s_; 
       const gsl_interp_type * gsl_t_; 
