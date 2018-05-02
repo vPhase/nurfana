@@ -9,11 +9,13 @@
 
 
 ## These are the files that must be built 
-SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc
+SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc 
+CUBATURE_SRCS := hcubature.c pcubature.c
 
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
-						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h
+						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h \
+						Interpolation2D.h 
 
 all: shared 
 
@@ -23,12 +25,16 @@ m.config:
 
 include m.config 
 
-.PHONY: shared clean install all doc
+.PHONY: shared clean install all doc 
 
 
 # Checks to make sure build system is up to date
 BUILD_SYSTEM:= Makefile m.config
 
+
+cmd_clr:= \\e[32m
+tgt_clr:= \\e[36m
+nrm_clr:= \\e[39m
 
 PLATFORM := $(shell root-config --platform) 
 
@@ -39,6 +45,7 @@ INCDIR=include/nurfana
 
 LIBS=${ROOT_LIBS} ${GSL_LIBS} ${FFTW3_LIBS} 
 CXXFLAGS +=-pthread -std=gnu++11 -fPIC -Wall -Wextra 
+CFLAGS += -pthread -fPIC -Wall -Wextra 
 INCFLAGS := -Iinclude -I${GSL_INCDIR} -I${ROOT_INCDIR} -I${FFTW3_INCDIR}  
 CXXFLAGS += $(INCFLAGS) 
 DEPFLAGS = -MT $@ -MMD -MF $(BUILDDIR)/$(*F).Td
@@ -55,8 +62,8 @@ ifeq ($(PLATFORM),macosx)
 	SHFLAG=-dynamic
 endif
 
-OBJS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.o} ) 
-DEPS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.d} ) 
+OBJS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.o} ${CUBATURE_SRCS:.c=.o}) 
+DEPS := $(addprefix $(BUILDDIR)/, ${SRCS:.cc=.d} ${CUBATURE_SRCS:.c=.d}) 
 INCLUDES := $(addprefix $(INCDIR)/, $(INCLUDES))
 DICT = $(BUILDDIR)/nurfanaDict.o
 
@@ -75,9 +82,16 @@ endif
 $(BUILDDIR):
 	@mkdir -p $@
 
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc 
+
+$(BUILDDIR)/%.o: $(SRCDIR)/cubature/%.c 
+	@echo -e $(cmd_clr) CC $(tgt_clr)\\t [$(*F)] $(nrm_clr)
+	@$(CC) $(DEPFLAGS) $(CFLAGS) -c $< -o $@
+	@mv -f $(BUILDDIR)/$(*F).Td $(BUILDDIR)/$(*F).d && touch $@ 
+
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR) 
-	@echo Compiling  [$(*F)] 
+	@echo -e $(cmd_clr) CXX $(tgt_clr)\\t [$(*F)] $(nrm_clr)
 	@$(CXX) $(DEPFLAGS) $(CXXFLAGS) -c $< -o $@
 	@mv -f $(BUILDDIR)/$(*F).Td $(BUILDDIR)/$(*F).d && touch $@ 
 
@@ -85,16 +99,16 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cc $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR)
 shared: $(BUILDDIR)/libnurfana.$(SHLIB)  
 
 $(BUILDDIR)/libnurfana.$(SHLIB): $(OBJS) $(DICT) $(BUILD_SYSTEM) | $(BUILDDIR) 
-	@echo Building shared library
+	@echo -e $(cmd_clr) LD $(tgt_clr)\\t [libnurfana] $(nrm_clr)
 	@$(CXX) $(SHFLAG) $(LDFLAGS) $(OBJS) $(DICT) $(LIBS) -o $@ 
 
 ## Generate the dictionary 
 $(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h $(BUILD_SYSTEM) | $(BUILDDIR) 
-	@echo Generating ROOT dictionary 
+	@echo -e $(cmd_clr) DICT $(tgt_clr)\\t [$(*F)] $(nrm_clr)
 	@$(ROOTCLING) -f $@ -c -p -I. -Iinclude/ $(INCLUDES) LinkDef.h 
 
 $(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C 
-	@echo Compiling ROOT dictionary
+	@echo -e $(cmd_clr) CC $(tgt_clr)\\t [$(*F)] $(nrm_clr)
 	@$(CXX) -c $(CXXFLAGS) -I. $< -o $@
 
 # Empty prerequisite to avoid complaining about missing .d files on first compile
@@ -114,6 +128,13 @@ clean:
 	@echo cleaning...
 	@rm -rf $(BUILDDIR) 
 	@rm -rf .libs 
+
+src/cubature: 
+	git submodule init
+	git submodule update
+
+src/cubature/pcubature.c: src/cubature
+src/cubature/hcubature.c: src/cubature
 
 
 .PRECIOUS: $(DEPS) 
