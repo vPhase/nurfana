@@ -131,7 +131,7 @@ clean:
 
 
 .submodule: src/cubature .gitmodules
-	@ echo "updating submodules..." 
+	@echo -e $(cmd_clr) GIT $(tgt_clr)\\t [SUBMODULE] $(nrm_clr)
 	@git submodule init 
 	@git submodule update
 	@touch $@

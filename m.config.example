@@ -54,9 +54,12 @@ PREFIX:=${NUPHASE_INSTALL_DIR}
 ##################################
 ## c++ compiler (will be overwritten by environment) 
 CXX?=g++
+## c compiler (will be overwritten by environment) 
+CC?=cc
 
 ## optional compilation flags, like optimization flags, additional debug flags
 CXXFLAGS:= -march=native -Os -ftree-vectorize -g -flto -Werror 
+CFLAGS:= -march=native -Os -ftree-vectorize -g -flto -Werror 
 ## optional linker flags 
 LDFLAGS:= -flto -g -Os 
 
