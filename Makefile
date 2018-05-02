@@ -108,7 +108,7 @@ $(BUILDDIR)/nurfanaDict.C:  $(INCLUDES) LinkDef.h $(BUILD_SYSTEM) | $(BUILDDIR)
 	@$(ROOTCLING) -f $@ -c -p -I. -Iinclude/ $(INCLUDES) LinkDef.h 
 
 $(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C 
-	@echo -e $(cmd_clr) CC $(tgt_clr)\\t [$(*F)] $(nrm_clr)
+	@echo -e $(cmd_clr) CXX $(tgt_clr)\\t [$(*F)] $(nrm_clr)
 	@$(CXX) -c $(CXXFLAGS) -I. $< -o $@
 
 # Empty prerequisite to avoid complaining about missing .d files on first compile
