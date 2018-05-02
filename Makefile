@@ -85,9 +85,9 @@ $(BUILDDIR):
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc 
 
-$(BUILDDIR)/%.o: $(SRCDIR)/cubature/%.c 
+$(BUILDDIR)/%.o: $(SRCDIR)/cubature/%.c $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR) 
 	@echo -e $(cmd_clr) CC $(tgt_clr)\\t [$(*F)] $(nrm_clr)
-	@$(CC) $(DEPFLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(DEPFLAGS) $(CFLAGS) -Wno-sign-compare -c $< -o $@
 	@mv -f $(BUILDDIR)/$(*F).Td $(BUILDDIR)/$(*F).d && touch $@ 
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc $(BUILDDIR)/%.d $(BUILD_SYSTEM) | $(BUILDDIR) 
@@ -129,12 +129,16 @@ clean:
 	@rm -rf $(BUILDDIR) 
 	@rm -rf .libs 
 
-src/cubature: 
-	git submodule init
-	git submodule update
 
-src/cubature/pcubature.c: src/cubature
-src/cubature/hcubature.c: src/cubature
+.submodule: src/cubature .gitmodules
+	@ echo "updating submodules..." 
+	@git submodule init 
+	@git submodule update
+	@touch $@
+
+
+src/cubature/pcubature.c: .submodule
+src/cubature/hcubature.c: .submodule 
 
 
 .PRECIOUS: $(DEPS) 
