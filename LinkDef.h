@@ -19,6 +19,7 @@
 #pragma link C++ class nurfana::Waveform+; 
 #pragma link C++ class nurfana::Antenna+; 
 #pragma link C++ class nurfana::Response+; 
+#pragma link C++ class nurfana::GridInterpolator2D+; 
 
 
 
