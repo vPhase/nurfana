@@ -132,7 +132,7 @@ clean:
 
 .submodule: src/cubature .gitmodules
 	@ echo "updating submodules..." 
-	@if [ ! -f $@ ] ; then  git submodule init ; fi 
+	@git submodule init 
 	@git submodule update
 	@touch $@
 
