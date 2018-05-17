@@ -1,5 +1,6 @@
 *nurfana (NU RF ANAlysis)*
    
+#THIS IS NOT YET USABLE DON'T TRY TO USE THIS YET!
 
 `nurfana` is yett another radio neutrino analyzer, this time for in-ice events. 
 
