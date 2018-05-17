@@ -2,24 +2,84 @@
 #define _nurfana_private_h
 
 #include <string.h> 
-#include <string> 
+#include "TString.h" 
 
 /** Private utility methods, not exported */ 
 namespace nurfana
 {
 
-    bool consume(std::string & opt, const char * what) 
+    inline TString & remove_spaces(TString & str) 
     {
-       size_t where = opt.find(what); 
 
-      if (where!=std::string::npos) 
+      char * tmp = new char[str.Length() + 1]; 
+      memset(tmp,0,str.Length()+1); 
+      int j = 0; 
+      int last= str.Length(); 
+      for (int i = str.Length()-1; i >= 0; i--)
       {
-        for (size_t i = where; i < where+strlen(what); i++) opt[i]=' '; 
+        if (str[i]!=' ') break; 
+        last--; 
+      }
+
+      for (int i = 0; i < last; i++) 
+      {
+        if (str[i] != ' ' || (i > 0 && str[i-1] != ' '))
+        {
+          tmp[j++] = str[i]; 
+        }
+      }
+
+      str = tmp; 
+      delete [] tmp; 
+      return str; 
+    }
+
+
+    template <typename T> 
+    inline bool parse_opt(TString & opt, const char * name, T * val)
+    {
+      int where = opt.First(name); 
+
+      if (where == kNPOS)
+        return false; 
+
+      double dval; 
+
+      int n; 
+      TString scanstr; scanstr.Form("%s=%%lg%%n", name); 
+      int found = sscanf(name + where, scanstr.Data(),&dval,&n);
+      if (found)
+      {
+        *val = dval; 
+        for (int i = 0; i < n; i++) 
+        {
+          opt[where+i] = ' '; 
+        }
+        remove_spaces(opt); 
+      }
+      else
+      {
+        opt.ReplaceAll(name,""); 
+      }
+      return true; 
+    }
+
+  // used for DRAW handling
+    inline bool consume(TString & opt, const char * what) 
+    {
+      int where = opt.First(what); 
+
+      if (where!=kNPOS) 
+      {
+        int len = strlen(what); 
+        for (int i = where; i < where+len; i++) opt[i]=' '; 
+        remove_spaces(opt); 
         return true; 
       }
       return false; 
     }
 
+ 
 
 }
 

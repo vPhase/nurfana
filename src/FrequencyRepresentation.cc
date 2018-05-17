@@ -128,7 +128,7 @@ namespace nurfana
     TAttMarker::Copy(*g); 
     TAttFill::Copy(*g); 
     f(g->GetX()); 
-    std::string opt(option);
+    TString opt(option);
 
     if (consume(opt,"GROUPDELAY"))
     {
@@ -157,7 +157,7 @@ namespace nurfana
     g->SetTitle(GetTitle()); 
     g->GetXaxis()->SetTitle("Frequency"); 
     g->SetBit(kCanDelete); 
-    g->Draw(opt.c_str()); 
+    g->Draw(opt.Data()); 
   }
 
 
