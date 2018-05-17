@@ -2,17 +2,16 @@
 #  User Configurable options for nurfana                       ---_- 
 #  Copy this file to m.config and modify                            \
 #                                                                     ---
-#  This gets included by the makefile,so trivial things like          /  \
+#  This gets included by the makefile, so trivial things like          /  \
 #  trailing spaces can potentially cause issues                       /   \
 ###########################################################################
-
 
 
 
 ####################################
 ## phased array related settings  ##
 ####################################
-# Enable Phased-Array Support
+# Enable Phased-Array Support (yes or no) 
 HAVE_NUPHASEROOT:=yes
 
 # Note that this only sets it if not defined in environment
@@ -28,7 +27,7 @@ NUPHASEROOT_LIBDIR:=${NUPHASE_INSTALL_DIR}/lib
 ##########################
 ## ARA related settings ##
 ##########################
-# Enable AraRoot support
+# Enable AraRoot support (yes or no) 
 HAVE_ARAROOT:=no
 
 ## Note that this only sets it if not defined in environment
@@ -44,8 +43,12 @@ ARAROOT_LIBDIR:=${ARA_UTIL_INSTALL_DIR}/lib
 ############################
 ## Installation  Settings ##
 ############################
+#
+# (if NURFANA_INSTALL_DIR isn't explicity defined, try using $(NUPHASE_INSTALL_DIR) 
+NURFANA_INSTALL_DIR?=$(NUPHASE_INSTALL_DIR)
+
 # Prefix for make install (and also rpath gets set here)
-PREFIX:=${NUPHASE_INSTALL_DIR}
+PREFIX:=${NURFANA_INSTALL_DIR}
 
 
 ##################################

@@ -9,13 +9,13 @@
 
 
 ## These are the files that must be built 
-SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc 
+SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc  IceModel.cc Digitizer.cc
 CUBATURE_SRCS := hcubature.c pcubature.c
 
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
 						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h \
-						Interpolation2D.h 
+						Interpolation2D.h IceModel.h Digitizer.h 
 
 all: shared 
 
@@ -114,10 +114,34 @@ $(BUILDDIR)/nurfanaDict.o: $(BUILDDIR)/nurfanaDict.C
 # Empty prerequisite to avoid complaining about missing .d files on first compile
 $(BUILDDIR)/%.d: ; 
 
-install: 
-	@echo Installing to $(PREFIX) 
+
+## Pkg-config file
+$(BUILDDIR)/nurfana.pc: $(BUILD_SYSTEM) | $(BUILDDIR) 
+	@echo -e $(cmd_clr) MKPKGCFG \\t [$(*F)] $(nrm_clr) 
+	@echo "prefix=$${prefix}" > $@
+	@echo "exec_prefix=$${prefix}/bin" >> $@
+	@echo "includedir=$${prefix}/include" >> $@
+	@echo "libdir=$${prefix}/lib" >> $@
+	@echo "" >>$@ 
+	@echo "Name: nurfana" >> $@
+	@echo "Description: The NU RF ANAlysis library" >> $@
+	@echo "Version: `git rev-parse --short` HEAD" >>$@ 
+	@echo "Cflags: -I$${includedir}" >> $@ 
+	@echo "Libs: -L$${libdir}" -lnurfana >> $@ 
+
+$(BUILDDIR)/nurfana_env.sh: $(BUILD_SYSTEM) | $(BUILDDIR) 
+	@echo -e $(cmd_clr) MKSH \\t [$(*F)] $(nrm_clr) 
+	@echo "export NURFANA_INSTALL_DIR=$(PREFIX)" > $@
+	@echo "export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(NURFANA_INSTALL_DIR)/lib" >> $@
+	@echo "export PATH=$(PATH):$(NURFANA_INSTALL_DIR)/bin" >> $@
+	@echo "export PKG_CONFIG_PATH=$(PKG_CONFIG_PATH):$(NURFANA_INSTALL_DIR)/lib/pkgconfig" >> $@
+
+install: shared $(BUILDDIR)/nurfana.pc $(BUILDDIR)/nurfana_env.sh 
+	@echo -e $(cmd_clr) INSTALL $(tgt_clr) \\t [$(PREFIX)] $(nrm_clr) 
 	@install -D -c $(BUILDDIR)/libnurfana.so $(PREFIX)/lib 
 	@install -D -c $(BUILDDIR)/*.pcm $(PREFIX)/lib 
+	@install -D -c $(BUILDDIR)/nurfana.pc $(PREFIX)/lib/pkgconfig 
+	@install -D -c $(BUILDDIR)/nurfana_env.sh $(PREFIX)/bin 
 	@install -d $(PREFIX)/include/nurfana
 	@install -D -c $(INCLUDES) $(PREFIX)/include/nurfana
 
@@ -125,9 +149,8 @@ doc:
 	@echo "make doc not implemented yet" 
 
 clean: 
-	@echo cleaning...
+	@echo -e $(cmd_clr) CLEAN  $(nrm_clr) 
 	@rm -rf $(BUILDDIR) 
-	@rm -rf .libs 
 
 
 .submodule: src/cubature .gitmodules
