@@ -1,6 +1,7 @@
 ** nurfana (NU RF ANAlysis) **
+   
 
-Yet another radio neutrino analyzer, this time for the phased array. 
+`nurfana` is yett another radio neutrino analyzer, this time for in-ice events. 
 
 Written in C++11. Requires a recent compiler, `ROOT6`, `GSL 2+`, and `fftw3`.
 To read in nuphase data you need `nuphaseroot`. 

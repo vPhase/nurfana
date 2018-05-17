@@ -38,6 +38,7 @@ namespace nurfana
       std::unique_ptr<Waveform> wf_; 
       std::unique_ptr<Antenna>  ant_; 
       std::unique_ptr<Response> response_; 
+      ClassDef(Channel,1); 
   }; 
 }
 

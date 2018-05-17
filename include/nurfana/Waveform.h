@@ -34,17 +34,19 @@ namespace nurfana
     public: 
 
       Waveform(const TGraph & g) ; 
-      Waveform(const TH1 & h); 
       
       /** Create a waveform from an evenly-sampled array */ 
       Waveform(const EvenRepresentation & even); 
+      Waveform(EvenRepresentation && even); //move constructor
 
       /** Create a waveform from an unevenly-sampled array. The unevenly-sampled
        * array will be lost as soon as a transformation is required into an evenly-sampled array */ 
       Waveform(const UnevenRepresentation & uneven); 
+      Waveform(UnevenRepresentation && uneven); 
 
       /** Create a waveform from evenly spaced points in the Fourier domain */ 
       Waveform(const FrequencyRepresentation & freq); 
+      Waveform(FrequencyRepresentation && freq); 
 
 
       /** Draw this waveform. By default, will draw the type of waveform used for initialization 

@@ -1,7 +1,12 @@
 #ifndef _NURFANA_ANGLE_H 
 #define _NURFANA_ANGLE_H
 
-/** Utility methods for dealing with angles and other peroidic thigns */
+/** Utility methods for dealing with angles and other peroidic thigns 
+ *  
+ *  Cosmin Deaconu <cozzyd@kicp.uchicago.edu> 
+ *
+ **/
+
 #include "TMath.h" 
 
 namespace nurfana
