@@ -1,4 +1,4 @@
-** nurfana (NU RF ANAlysis) **
+*nurfana (NU RF ANAlysis)*
    
 
 `nurfana` is yett another radio neutrino analyzer, this time for in-ice events. 
