@@ -125,6 +125,20 @@ namespace nurfana
     y_ = std::move(other.y_); 
   }
 
+  bool UnevenRepresentation::amIReallyEven() const 
+  {
+    if (!t_.size()) return true; 
+
+    double first_dt = t_[1] - t_[0]; 
+
+    for (unsigned i = 2; i < t_.size(); i++) 
+    {
+      if (t_[i] - t_[i-1] != first_dt) return false; 
+    }
+
+    return true; 
+  }
+
   /// Even ///
 
   EvenRepresentation::EvenRepresentation(size_t N, const double *y, double dt, double t0) 
@@ -136,15 +150,23 @@ namespace nurfana
   EvenRepresentation::EvenRepresentation(const UnevenRepresentation & u, double dt) 
     : TimeRepresentation(u), t_dirty_(true) 
   {
-    double first = u.t(0); 
-    double last = u.t(u.N()-1); 
+    double first = u.N() ? u.t(0) : 0; 
+    double last = u.N() ? u.t(u.N()-1) : 0; 
     t0_ = first; 
     dt_ = dt ?: (last - first) / (u.N() - 1); 
-    size_t n = ceil((last-first)/dt_); 
-    y_.resize(n); 
-    interp_->evalMany(n, t(), updateY()); 
+    size_t n = u.N() ?  ceil((last-first)/dt_) : 0; 
+    if (n) y_.resize(n); 
+    else fprintf(stderr, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
+    if (u.amIReallyEven()  && (u.N() > 1 && dt == u.t(1) - u.t(0)))
+    {
+      //I can just copy... 
+      std::copy(u.y(), u.y() + u.N(), y_.begin()); 
+    }
+    else
+    {
+      interp_->evalMany(n, t(), updateY()); 
+    }
   }
-
 
   EvenRepresentation::EvenRepresentation(const FrequencyRepresentation & f) 
     :  t0_(f.t0()), dt_(1./(f.Nt() * f.df())), t_dirty_(true) 
