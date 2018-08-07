@@ -18,26 +18,26 @@ namespace nurfana
   {
     public: 
       Channel(const char * name,
-             std::unique_ptr<Waveform> wf,
-             std::unique_ptr<Antenna>  antenna,
-             std::unique_ptr<Response> response)
+             Waveform* wf,
+             Antenna*  antenna,
+             Response* response)
         : TNamed(name,name) 
       {
-        wf_ = std::move(wf);
-        ant_ = std::move(antenna);
-        response_ = std::move(response);
+        wf_ = wf;
+        ant_ = antenna; 
+        response_ = response; 
       }
       
-      Waveform & wf() { return *wf_; } 
-      Antenna & antenna() { return *ant_; } 
-      Response & response() { return *response_; } 
+      Waveform * wf() { return wf_; } 
+      Antenna * antenna() { return ant_; } 
+      Response * response() { return response_; } 
 
       virtual ~Channel() { ; }
 
     private: 
-      std::unique_ptr<Waveform> wf_; 
-      std::unique_ptr<Antenna>  ant_; 
-      std::unique_ptr<Response> response_; 
+      Waveform* wf_; 
+      Antenna*  ant_; 
+      Response* response_; 
       ClassDef(Channel,1); 
   }; 
 }
