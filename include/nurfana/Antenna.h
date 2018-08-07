@@ -2,6 +2,7 @@
 #define _NURFANA_ANTENNA_H
 #include "TVector3.h" 
 #include <complex>
+#include <cmath> 
 
 namespace nurfana
 {
@@ -15,34 +16,32 @@ namespace nurfana
 
       /** The stupidest case */ 
       Antenna(double x, double y, double z)
-        : _position(x,y,z),  
-          _orientation(0,0,1), 
-          _rot(0) { ; } 
+        : position_(x,y,z),  
+          orientation_(0,0,1), 
+          rot_(0) { ; } 
 
       /** Slightly smarter case */ 
 
       Antenna(const TVector3 & pos, const TVector3 & orientation, double rot) 
-        : _position(pos), _orientation(orientation.Unit()), rot(rot) 
+        : position_(pos), orientation_(orientation.Unit()), rot_(rot) 
       {
       }
 
 
       virtual std::complex<double> H(double f, const TVector3 & dir) const ; 
-      virtual double G(double f, const TVector3 & dir) { std::abs(H(f,dir)); }
-      virtual double ph(double f, const TVector3 & dir) { std::ang(H(f,dir)); }
+      virtual double G(double f, const TVector3 & dir) { return std::abs(H(f,dir)); }
+      virtual double ph(double f, const TVector3 & dir) { return std::arg(H(f,dir)); }
 
 
-      const TVector & position() const { return _position; } 
+      const TVector3 & position() const { return position_; } 
 
 
 
     protected: 
-      TVector3 _position; 
-      TVector3 _orientation; 
-      double _rot; 
-      virtual std::complex<double> localH( double f, double local_el, double local_phi = 0) const { return cos(local_el); }
-      virtual double localGain(double f, double theta, double phi = 0) { std::abs(H(f,theta_el,phi)); }
-      virtual double localPhase(double f, double theta, double phi = 0) { std::ang(H(f,theta_el,phi)); }
+      TVector3 position_; 
+      TVector3 orientation_; 
+      double rot_; 
+      virtual std::complex<double> localH( double f, double local_el, double local_phi = 0) const { (void) f; (void) local_phi; return cos(local_el); }
 
 
      ClassDef(Antenna,1); 
