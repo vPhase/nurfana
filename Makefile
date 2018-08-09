@@ -9,13 +9,17 @@
 
 
 ## These are the files that must be built 
-SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc  IceModel.cc Digitizer.cc
+SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc\
+				IceModel.cc Digitizer.cc Antenna.cc Waveform.cc \
+				Response.cc PhasedArrayReader.cc  Impulsivity.cc Mapper.cc Ops.cc
+
 CUBATURE_SRCS := hcubature.c pcubature.c
 
 ## Public includes 
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
 						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h \
-						Interpolation2D.h IceModel.h Digitizer.h 
+						Interpolation2D.h IceModel.h Digitizer.h PhasedArray.h \
+						Response.h Event.h Mapper.h SignalOps.h
 
 all: shared 
 
@@ -70,7 +74,7 @@ DICT = $(BUILDDIR)/nurfanaDict.o
 ifeq ($(HAVE_NUPHASEROOT),yes)
 	DEP_TARGETS+=nuphase
 	CXXFLAGS+= -DHAVE_NUPHASE -I${NUPHASEROOT_INCDIR}
-	LFLAGS+=-L${NUPHASEROOT_LIBDIR} -lnuphaseroot
+	LIBS+=-L${NUPHASEROOT_LIBDIR} -lnuphaseroot
 endif
 ifeq ($(HAVE_ARAROOT),yes)
 	DEP_TARGETS+=ara
