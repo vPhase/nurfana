@@ -38,7 +38,7 @@ namespace nurfana
     template <typename T> 
     inline bool parse_opt(TString & opt, const char * name, T * val)
     {
-      int where = opt.First(name); 
+      int where = opt.Index(name); 
 
       if (where == kNPOS)
         return false; 
@@ -47,8 +47,8 @@ namespace nurfana
 
       int n; 
       TString scanstr; scanstr.Form("%s=%%lg%%n", name); 
-      int found = sscanf(name + where, scanstr.Data(),&dval,&n);
-      if (found)
+      int found = sscanf(opt.Data() + where, scanstr.Data(),&dval,&n);
+      if (found>0)
       {
         *val = dval; 
         for (int i = 0; i < n; i++) 
@@ -67,12 +67,13 @@ namespace nurfana
   // used for DRAW handling
     inline bool consume(TString & opt, const char * what) 
     {
-      int where = opt.First(what); 
+      int where = opt.Index(what); 
 
       if (where!=kNPOS) 
       {
         int len = strlen(what); 
         for (int i = where; i < where+len; i++) opt[i]=' '; 
+    //    printf("Found %s\n", what); 
         remove_spaces(opt); 
         return true; 
       }
