@@ -4,6 +4,8 @@
 #include "TAxis.h" 
 
 
+
+
 namespace nurfana
 {
   namespace ice
@@ -16,7 +18,6 @@ namespace nurfana
     const DensityModel & DensityModel::getDefault() { return default_dens; } 
     const RefractionModel & RefractionModel::getDefault() { return default_refr; } 
     const AttenuationModel & AttenuationModel::getDefault() { return default_atten; } 
-
 
 
 
@@ -101,13 +102,27 @@ namespace nurfana
         }
        
         g->GetXaxis()->SetTitle("Depth (m)"); 
-        g->GetYaxis()->SetTitle("Density (g/cm^3)"); 
+        g->GetYaxis()->SetTitle("Density (g/cm^{3})"); 
         str.Form("Density vs. Depth"); 
         g->SetTitle(str.Data()); 
       }
 
       g->SetBit(kCanDelete); 
       g->Draw(opt); 
+    }
+
+    int ExponentialRefractionModel::getDepthsWithN(double N, std::vector<double> & depths) const 
+    {
+       if (N < n(0) || N > n(10000)) return 0; 
+       depths.push_back(-log(1-(N-a0_)/a1_)/b1_); 
+       return 1; 
+    }
+
+    int ExponentialDensityModel::getDepthsWithDensity(double rho, std::vector<double> & depths) const
+    {
+       if (rho < density(0) || rho > density(10000)) return 0; 
+       depths.push_back(-log(1-(rho-a0_)/a1_)/b1_); 
+       return 1; 
     }
   }
 
