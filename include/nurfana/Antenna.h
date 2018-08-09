@@ -15,10 +15,12 @@ namespace nurfana
     public: 
 
       /** The stupidest case */ 
-      Antenna(double x, double y, double z)
+      Antenna(double x, double y, double z, int type)
         : position_(x,y,z),  
           orientation_(0,0,1), 
-          rot_(0) { ; } 
+          rot_(0), type_(type) { ; } 
+          
+
 
       /** Slightly smarter case */ 
 
@@ -33,8 +35,10 @@ namespace nurfana
       virtual double ph(double f, const TVector3 & dir) { return std::arg(H(f,dir)); }
 
 
+      int getType() const { return type_; }
       const TVector3 & position() const { return position_; } 
 
+      virtual ~Antenna() { ; } 
 
 
     protected: 
@@ -42,6 +46,7 @@ namespace nurfana
       TVector3 orientation_; 
       double rot_; 
       virtual std::complex<double> localH( double f, double local_el, double local_phi = 0) const { (void) f; (void) local_phi; return cos(local_el); }
+      int type_; 
 
 
      ClassDef(Antenna,1); 
