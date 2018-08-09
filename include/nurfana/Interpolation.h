@@ -27,13 +27,26 @@ namespace nurfana
     kInterpGSL 
   }; 
 
+  class Interpolatable
+  {
+    public: 
+      virtual size_t N() const  = 0;
+      virtual const double * t() const  = 0; 
+      virtual double t(size_t i) const { return t()[i]; }
+      virtual const double * y() const  = 0; 
+      virtual double y(size_t i) const { return y()[i]; } 
+      virtual size_t lower_bound(double t, size_t start = 0) const = 0; 
+      virtual double dt(size_t i) const = 0; 
+      virtual ~Interpolatable() { ; }
+  }; 
+
 
   class Interpolator 
   {
     public: 
       /** Set the input of the interpolator. This theoretically can be expensive
        * depending on what the interpolator has to do */ 
-      virtual void setInput(const TimeRepresentation* input)  { input_ = input; }
+      virtual void setInput(const Interpolatable* input)  { input_ = input; }
 
       /** Interpolate the input at value t */ 
       double eval(double t) const { double answer; evalMany(1,&t,&answer); return answer; }
@@ -64,7 +77,7 @@ namespace nurfana
       virtual const void * opt() const  = 0; 
 
     protected: 
-      const TimeRepresentation * input_; 
+      const Interpolatable * input_; 
   }; 
 
 
