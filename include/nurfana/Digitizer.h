@@ -18,8 +18,8 @@ namespace nurfana
 
       } 
 
-      const Digitizer & IRS2(); 
-      const Digitizer & PhasedArray(); 
+      static const Digitizer & IRS2(); 
+      static const Digitizer & PhasedArray(); 
 
       const char * getName() { return name_; }
       double getSampleRate() const { return rate_; } 
