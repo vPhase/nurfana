@@ -25,7 +25,7 @@ namespace nurfana
   class FrequencyRepresentation; 
 
   /** Virtual parent class for both Uneven and EvenReRepresentation */ 
-  class TimeRepresentation : public TNamed, public TAttLine, public TAttMarker, public TAttFill 
+  class TimeRepresentation : public TNamed, public TAttLine, public TAttMarker, public TAttFill, public Interpolatable
   {
 
     public: 
@@ -34,11 +34,10 @@ namespace nurfana
       virtual size_t N() const { return y_.size(); } 
       
       /** Returns the y-values of the samples */ 
-      const double * y() const { return &y_[0]; } 
-      double y(size_t i) const { return y_[i]; } 
+      virtual const double * y() const { return &y_[0]; } 
+      virtual double y(size_t i) const { return y_[i]; } 
       void fillY(double * vals) const; 
-
-      double operator[](size_t i) { return y(i); } 
+      double operator[](size_t i) const { return y(i); } 
       
 
       /** Resize to N. If longer than current size, new samples will all be zero */ 
@@ -69,13 +68,32 @@ namespace nurfana
 
       void setInterpolatorType(InterpolationType t, void * opt); 
       const Interpolator * interpolator() const { return interp_; }
+
       virtual void Draw(Option_t * opt = "") ;
+
+      /** Utility methods */ 
+
+      double getPeak(unsigned * index = 0, int start = 0, int end = -1, bool use_abs = false) const; 
+      double getSumV2(int start = 0, int end = -1) const; 
+      double getMean(int start = 0, int end = -1) const; 
+      double getRMS(int start = 0, int end = -1) const; 
+
+
+      TimeRepresentation & operator *(double x); 
+      TimeRepresentation & operator /(double x); 
+      TimeRepresentation & operator -(double x); 
+      TimeRepresentation & operator +(double x); 
+
+      TGraph * makeGraph(TGraph * useme = 0) const; 
+
 
     protected: 
       TimeRepresentation();  
       TimeRepresentation(const TimeRepresentation & other);  
+      TimeRepresentation & operator=(const TimeRepresentation & other);  
       TimeRepresentation(TimeRepresentation && other);  
       TimeRepresentation(const FrequencyRepresentation & other);  
+      TimeRepresentation & operator=(const FrequencyRepresentation & other);  
       virtual ~TimeRepresentation(); 
       std::vector<double> y_; 
       mutable std::vector<double> t_; /**This is mutable because it may be cached */
@@ -91,20 +109,24 @@ namespace nurfana
   {
 
     public: 
-          UnevenRepresentation(size_t N, const double * t, const double * y); 
+          UnevenRepresentation(size_t N, const double * t, const double * y, double nominal_dt); 
           UnevenRepresentation(const TGraph & g);
           UnevenRepresentation(const EvenRepresentation & even); 
 
           UnevenRepresentation(const UnevenRepresentation & copy); 
-
+          UnevenRepresentation()  {;}
           UnevenRepresentation & operator=(const UnevenRepresentation & assign); 
+          UnevenRepresentation & operator=(const EvenRepresentation & assign); 
 
           UnevenRepresentation(UnevenRepresentation && move); 
 
           virtual double * updateT() {  return &t_[0]; }
+          bool amIReallyEven() const; 
+          double nominalDT() const { return nominal_dt_; }
 
     protected:
 
+          double nominal_dt_; 
       ClassDef(UnevenRepresentation,1); 
   };
 
@@ -116,15 +138,24 @@ namespace nurfana
       EvenRepresentation(size_t N, const double * y, double dt, double t0 = 0); 
       EvenRepresentation (const UnevenRepresentation & uneven, double dt = 0); 
       EvenRepresentation (const FrequencyRepresentation & freq); 
-
+      EvenRepresentation(): t0_(0), dt_(1) { ; } 
       EvenRepresentation (const EvenRepresentation & copy); 
 
+      EvenRepresentation & operator=(const UnevenRepresentation & assign); 
+      EvenRepresentation & operator=(const FrequencyRepresentation & assign); 
+      EvenRepresentation & operator=(const EvenRepresentation & assign); 
+
       virtual void resize(size_t N) { invalidateT();  y_.resize(N); } 
+      virtual void pad(size_t n) { resize((1+n)*N()); } 
+
+      virtual size_t lower_bound(double t, size_t start = 0) const { (void) start; return (t-t0())/dt(); }; 
 
       void setDT(double dt) { dt_ = dt; invalidateT(); } 
       void setT0(double t0) { t0_ = t0; invalidateT(); } 
+
       double dt(size_t i = 0) const {(void) i;  return dt_; } 
       double t0() const { return t0_; } 
+
       virtual const double * t() const;
       virtual double t(size_t i) const { return dt_ * i + t0_; }
       virtual void fillT(double *t) const; 

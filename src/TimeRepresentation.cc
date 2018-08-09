@@ -35,11 +35,33 @@ namespace nurfana
     interp_ = Interpolator::copy(*other.interp_); 
   }
 
+  TimeRepresentation & TimeRepresentation::operator=(const TimeRepresentation &other) 
+  {
+    TNamed::operator=(other); 
+    TAttLine::operator=(other); 
+    TAttMarker::operator=(other); 
+    TAttFill::operator=(other); 
+    interp_ = Interpolator::copy(*other.interp_); 
+    return *this; 
+  }
+
+
+
   TimeRepresentation::TimeRepresentation(const FrequencyRepresentation &other) 
     : TNamed (other), TAttLine(other), TAttMarker(other), TAttFill(other)
   {
     interp_ = Interpolator::make(); 
   }
+
+  TimeRepresentation & TimeRepresentation::operator=(const FrequencyRepresentation &other) 
+  {
+    TNamed::operator=(other); 
+    TAttLine::operator=(other); 
+    TAttMarker::operator=(other); 
+    TAttFill::operator=(other); 
+    return *this; 
+  }
+
 
   TimeRepresentation::TimeRepresentation(TimeRepresentation && other) 
    : TNamed(other), TAttLine(other), TAttMarker(other), TAttFill(other)
@@ -64,10 +86,11 @@ namespace nurfana
     std::copy(t(),t() + N(), vals); 
   }
 
-
-  void TimeRepresentation::Draw(Option_t  * opt ) 
+  TGraph * TimeRepresentation::makeGraph(TGraph * g ) const
   {
-    TGraph * g = new TGraph(N()); 
+    if (!g) g = new TGraph(N()); 
+    else g->Set(N()); 
+
     g->SetName(GetName()); 
     g->SetTitle(GetTitle()); 
     TAttLine::Copy(*g); 
@@ -76,14 +99,108 @@ namespace nurfana
     fillT(g->GetX()); 
     fillY(g->GetY()); 
     g->GetXaxis()->SetTitle("t"); 
+ 
+    return g; 
+  }
+
+  void TimeRepresentation::Draw(Option_t  * opt ) 
+  {
+    TGraph * g =makeGraph(); 
     g->SetBit(kCanDelete); 
     g->Draw(opt); 
   }
 
 
+  double TimeRepresentation::getPeak(unsigned * index, int start, int end, bool abs) const
+  {
+    if ( start < 0) start += N(); 
+    if ( end < 0) start += N(); 
+
+    double max = 0; 
+    int imax = 0; 
+
+    for (int i = start; i <= end; i++) 
+    {
+      double V = abs ? fabs(y(i)) : y(i); 
+      if ( V > max) 
+      {
+        max = V; 
+        imax = i; 
+      }
+    }
+
+    if (index) *index = imax; 
+    return max; 
+  }
+
+  double TimeRepresentation::getSumV2(int start , int end )  const
+  {
+    if ( start < 0) start += N(); 
+    if ( end < 0) start += N(); 
+
+    double V2 = 0; 
+    for (int i = start; i <= end; i++) 
+    {
+      double V = y(i); 
+      V2 += V*V; 
+    }
+
+    return V2; 
+  }
+
+  double TimeRepresentation::getRMS(int start, int end)  const
+  {
+    return sqrt(getSumV2(start,end)/ N()); 
+  }
+
+
+  double TimeRepresentation::getMean(int start, int end)  const
+  {
+    if ( start < 0) start += N(); 
+    if ( end < 0) start += N(); 
+
+    double sum = 0; 
+
+    for (int i = start; i <= end; i++) 
+    {
+      sum += y(i); 
+    }
+
+    return sum/N(); 
+  }
+
+
+  TimeRepresentation & TimeRepresentation::operator*(double x)
+  {
+    for (unsigned i = 0; i < N(); i++) y_[i] *=x; 
+    return *this; 
+  }
+
+  TimeRepresentation & TimeRepresentation::operator-(double x)
+  {
+    for (unsigned i = 0; i < N(); i++) y_[i] -=x; 
+    return *this; 
+  }
+
+  TimeRepresentation & TimeRepresentation::operator+(double x)
+  {
+    for (unsigned i = 0; i < N(); i++) y_[i] +=x; 
+    return *this; 
+  }
+
+  TimeRepresentation & TimeRepresentation::operator/(double x)
+  {
+    double inv = 1./x; 
+    for (unsigned i = 0; i < N(); i++) y_[i] *=inv; 
+    return (*this); 
+  }
+
+
+
   /// Uneven ////
 
-  UnevenRepresentation::UnevenRepresentation(size_t N, const double * t, const double * y) 
+  UnevenRepresentation::UnevenRepresentation(size_t N, const double * t, const double * y, double dt) 
+  :  nominal_dt_ (dt) 
   {
     y_.insert(y_.end(), y, y+N); 
     t_.insert(t_.end(), t, t+N); 
@@ -93,6 +210,7 @@ namespace nurfana
   {
     y_.insert(y_.end(),g.GetY(), g.GetY() + g.GetN()); 
     t_.insert(t_.end(),g.GetX(), g.GetX() + g.GetN()); 
+    nominal_dt_ = 0; 
   }
 
   UnevenRepresentation::UnevenRepresentation(const EvenRepresentation & even) 
@@ -101,6 +219,17 @@ namespace nurfana
     y_.insert(y_.end(), even.y(), even.y()+even.N()); 
     t_.resize(N()); 
     even.fillT(&t_[0]); 
+    nominal_dt_ = even.dt(); 
+  }
+
+  UnevenRepresentation & UnevenRepresentation::operator=(const EvenRepresentation & even) 
+  {
+    TimeRepresentation::operator=(even); 
+    y_.insert(y_.end(), even.y(), even.y() + even.N()); 
+    t_.resize(N()); 
+    even.fillT(&t_[0]); 
+    nominal_dt_ = even.dt(); 
+    return *this; 
   }
 
   UnevenRepresentation::UnevenRepresentation(const UnevenRepresentation & other) 
@@ -108,13 +237,15 @@ namespace nurfana
   {
     t_ = other.t_; 
     y_ = other.y_; 
+    nominal_dt_ = other.nominal_dt_; 
   }
 
   UnevenRepresentation & UnevenRepresentation::operator=(const UnevenRepresentation & assign) 
   {
-    this->interp_ = Interpolator::copy(*assign.interp_); 
+    TimeRepresentation::operator=(assign); 
     t_ = assign.t_; 
     y_ = assign.y_; 
+    nominal_dt_ = assign.nominal_dt_; 
     return *this; 
   }
 
@@ -123,6 +254,7 @@ namespace nurfana
   {
     t_ = std::move(other.t_); 
     y_ = std::move(other.y_); 
+    nominal_dt_ = other.nominal_dt_; 
   }
 
   bool UnevenRepresentation::amIReallyEven() const 
@@ -153,7 +285,7 @@ namespace nurfana
     double first = u.N() ? u.t(0) : 0; 
     double last = u.N() ? u.t(u.N()-1) : 0; 
     t0_ = first; 
-    dt_ = dt ?: (last - first) / (u.N() - 1); 
+    dt_ = dt ?: u.nominalDT() ?: (last - first) / (u.N() - 1); 
     size_t n = u.N() ?  ceil((last-first)/dt_) : 0; 
     if (n) y_.resize(n); 
     else fprintf(stderr, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
@@ -168,12 +300,72 @@ namespace nurfana
     }
   }
 
+
+  EvenRepresentation & EvenRepresentation::operator=(const UnevenRepresentation & u) 
+  {
+    TimeRepresentation::operator=(u); 
+    t_dirty_ = true; 
+    double first = u.N() ? u.t(0) : 0; 
+    double last = u.N() ? u.t(u.N()-1) : 0; 
+    t0_ = first; 
+    dt_ = u.nominalDT() ?: (last - first) / (u.N() - 1); 
+    size_t n = u.N() ?  ceil((last-first)/dt_) : 0; 
+
+    if (n) y_.resize(n); 
+    else fprintf(stderr, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
+
+    if (u.amIReallyEven()  && (u.N() > 1 && dt_ == u.t(1) - u.t(0)))
+    {
+      //I can just copy... 
+      std::copy(u.y(), u.y() + u.N(), y_.begin()); 
+    }
+    else
+    {
+      interp_->evalMany(n, t(), updateY()); 
+    }
+ 
+    return *this; 
+  }
+    
+
   EvenRepresentation::EvenRepresentation(const FrequencyRepresentation & f) 
-    :  t0_(f.t0()), dt_(1./(f.Nt() * f.df())), t_dirty_(true) 
+    : TimeRepresentation(f), t0_(f.t0()), dt_(1./(f.Nt() * f.df())), t_dirty_(true) 
   {
     y_.resize(f.Nt()); 
     fft::inverse(N(), f.Y(), &y_[0]); 
   }
+
+  EvenRepresentation::EvenRepresentation(const EvenRepresentation & copy)
+    : TimeRepresentation(copy) 
+  {
+    t0_ = copy.t0_; 
+    dt_ = copy.dt_; 
+    y_ = copy.y_; 
+    t_dirty_ = true; 
+  }
+
+  EvenRepresentation & EvenRepresentation::operator=(const EvenRepresentation & copy)
+  {
+    TimeRepresentation::operator=(copy); 
+    t0_ = copy.t0(); 
+    dt_ = copy.dt(); 
+    y_.insert(y_.begin(),copy.y(), copy.y()+copy.N()); 
+    t_dirty_ = true; 
+    return *this; 
+  }
+
+
+  EvenRepresentation & EvenRepresentation::operator=(const FrequencyRepresentation & f) 
+  {
+    TimeRepresentation::operator=(f); 
+    t0_ = f.t0(); 
+    dt_ = 1./(f.Nt() * f.df()); 
+    t_dirty_ = true; 
+    y_.resize(f.Nt()); 
+    fft::inverse(N(), f.Y(), &y_[0]); 
+    return *this; 
+  }
+
 
   const double * EvenRepresentation::t() const 
   {
