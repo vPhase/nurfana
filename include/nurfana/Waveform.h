@@ -25,11 +25,10 @@ class TH1;
 
 namespace nurfana
 {
+
   class Waveform : 
      public TNamed, public TAttLine , public TAttMarker, public TAttFill
   {
-
-#ifdef NOTDONEYET
 
     public: 
 
@@ -58,14 +57,13 @@ namespace nurfana
        *   GROUP_DELAY -> Group Delay 
        *   ENVELOPE -> Hilbert Envelope
        **/ 
-
-
-      /* Returns the hilbert transform of the waveform */ 
-      const Waveform & hilbertTransform() const; 
-      const Waveform & envelope() const; 
-
       virtual void Draw(Option_t * opt); 
-      virtual void Paint(Option_t * opt); 
+
+     /* Returns the hilbert transform of the waveform */ 
+      const Waveform & hilbertTransform() const; 
+     
+      const EvenRepresentation & envelope() const; 
+
 
       const EvenRepresentation & even() const; 
       EvenRepresentation & updateEven(); 
@@ -76,23 +74,28 @@ namespace nurfana
       const FrequencyRepresentation & freq() const; 
       FrequencyRepresentation & updateFreq() ; 
 
+
+      virtual ~Waveform(); 
     private: 
 
-      mutable bool _even_dirty; 
-      mutable bool _uneven_dirty; 
-      mutable bool _freq_dirty; 
-      mutable bool _hilbert_dirty; 
-      mutable bool _envelope_dirty; 
+      void prepareEven() const; 
+      void prepareUneven() const; 
+      void prepareFreq() const; 
 
-      mutable EvenRepresentation _even;
-      mutable UnevenRepresentation _uneven;
-      mutable FrequencyRepresentation _freq;
-      mutable Waveform *_hilbert; 
-      mutable Waveform *_envelope; 
+      mutable bool even_dirty_; 
+      mutable bool uneven_dirty_; 
+      mutable bool freq_dirty_; 
+      mutable bool hilbert_dirty_; 
+      mutable bool envelope_dirty_; 
 
-#endif 
+      mutable EvenRepresentation even_;
+      mutable UnevenRepresentation uneven_;
+      mutable FrequencyRepresentation freq_;
+      mutable Waveform *hilbert_; 
+      mutable EvenRepresentation *envelope_; 
       ClassDef(Waveform,1); 
   }; 
+ 
 }
 
 
