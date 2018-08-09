@@ -12,6 +12,7 @@
 #include "TAttFill.h" 
 #include "TAttLine.h" 
 #include "TAttMarker.h" 
+#include "nurfana/Interpolation.h" 
 #include <complex> 
 
 namespace nurfana
@@ -28,8 +29,14 @@ namespace nurfana
 
 
       FrequencyRepresentation(const EvenRepresentation & even); 
+      FrequencyRepresentation(const FrequencyRepresentation & freq); 
 
-      virtual void Draw(Option_t * option = "MAG ALP DB"); 
+      FrequencyRepresentation & operator=(const EvenRepresentation & even); 
+      FrequencyRepresentation & operator=(const FrequencyRepresentation & freq); 
+
+      FrequencyRepresentation() : Nt_(0), t0_(0), df_(0) { ; }
+
+      virtual void Draw(Option_t * option = "MAG ALP"); 
 
       /** Number of samples in time domain */
       size_t Nt() const { return Nt_; } 
@@ -46,16 +53,22 @@ namespace nurfana
       /** The frequency at an index */ 
       double f(size_t i) const { return i * df(); } 
 
+
       /** Fill an array with the frequency at each index */ 
       void f(double * dest) const; 
 
+
+
       /** Accessors for values */ 
       std::complex<double> Y(size_t i) const { return Y_[i]; }
-      std::complex<double> * updateY() { invalidate(); return &Y_[0]; }
+      std::complex<double> operator[](size_t i) const { return Y(i); } 
+
+      virtual std::complex<double> * updateY() { invalidate(); return &Y_[0]; }
       const std::complex<double> * Y() const { return &Y_[0]; }
 
       /** Change size */
       void setNt(size_t new_N); 
+      void pad(size_t n) { setNt( (1+n) * Nt()); }
 
       double mag(size_t i, bool dB = false) const;
       double phase(size_t i, bool unwrapped = false) const; 
@@ -72,9 +85,11 @@ namespace nurfana
      double t0_; 
      double df_; 
      std::vector<std::complex<double> > Y_; 
+
+     mutable std::vector<double> f_; // needed for inteprolation
      mutable bool unwrapped_invalid_; 
      mutable bool delay_invalid_; 
-     void invalidate() { unwrapped_invalid_ =  true; delay_invalid_ = true; }; 
+     virtual void invalidate() { unwrapped_invalid_ =  true; delay_invalid_ = true; }; 
      void calc_delay() const; 
      void calc_unwrapped() const; 
 
@@ -84,6 +99,10 @@ namespace nurfana
      mutable TMutex m_unwrap_; 
      mutable TMutex m_delay_; 
      
+     Interpolator * interp_re_; 
+     Interpolator * interp_im_; 
+
+     ClassDef(FrequencyRepresentation,1); 
   }; 
 
 

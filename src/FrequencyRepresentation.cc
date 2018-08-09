@@ -13,6 +13,30 @@ namespace nurfana
 {
 
 
+  FrequencyRepresentation::FrequencyRepresentation(const FrequencyRepresentation & other) 
+    : TNamed(other), TAttFill(other), TAttLine(other), TAttMarker(other) 
+  {
+    Nt_ = other.Nt_; 
+    t0_ = other.t0_; 
+    Y_ = other.Y_; 
+
+    /// in principle we could copy over the other stuff too... 
+    invalidate(); 
+
+  }
+
+  FrequencyRepresentation & FrequencyRepresentation::operator=(const FrequencyRepresentation & other)
+  {
+    TNamed::operator=(other); 
+    TAttFill::operator=(other); 
+    TAttLine::operator=(other); 
+    TAttMarker::operator=(other); 
+    Nt_ = other.Nt(); 
+    t0_ = other.t0(); 
+    Y_.insert(Y_.begin(), other.Y(), other.Y() + other.Nf()); 
+    return *this; 
+  }
+
   FrequencyRepresentation::FrequencyRepresentation(size_t N, 
                                                    const std::complex<double> * Y, 
                                                    double df, double t0) 
@@ -28,6 +52,21 @@ namespace nurfana
   {
      fft::forward(Nt_, even.y(), &Y_[0]); 
      invalidate(); 
+  }
+
+  FrequencyRepresentation & FrequencyRepresentation::operator=(const EvenRepresentation & even) 
+  {
+    TNamed::operator=(even); 
+    TAttFill::operator=(even); 
+    TAttLine::operator=(even); 
+    TAttMarker::operator=(even); 
+    Nt_ = even.N(); 
+    t0_ = even.t0(); 
+    df_ = 1./(even.N() * even.dt()); 
+    Y_.resize(Nt_/2+1); 
+    fft::forward(Nt_, even.y(), &Y_[0]); 
+    invalidate(); 
+    return *this; 
   }
 
 
