@@ -10,6 +10,7 @@
 
 #include "TNamed.h" 
 #include <cmath> 
+#include <vector> 
 
 namespace nurfana
 {
@@ -26,6 +27,7 @@ namespace nurfana
       public:
         virtual double density(double z_m) const = 0; 
         static const DensityModel & getDefault(); 
+        virtual int getDepthsWithDensity(double rho, std::vector<double> & depths) const =0; 
         virtual ~DensityModel() { ; } 
     };
 
@@ -34,6 +36,7 @@ namespace nurfana
       public:
         virtual double n(double z_m) const = 0; 
         static const RefractionModel & getDefault(); 
+        virtual int getDepthsWithN(double n, std::vector<double> & depths) const = 0;
         virtual ~RefractionModel() { ; } 
     };
 
@@ -53,12 +56,19 @@ namespace nurfana
         Model( const char * id = "default" , 
                   const DensityModel & density = DensityModel::getDefault(), 
                   const RefractionModel & refraction = RefractionModel::getDefault(), 
-                  const AttenuationModel & attenuation = AttenuationModel::getDefault() ) 
-          : TNamed(id,id), density_(density), refraction_(refraction), attenuation_(attenuation) {}
+                  const AttenuationModel & attenuation = AttenuationModel::getDefault() , 
+                  double iceDepth = 2800
+                  ) 
+          : TNamed(id,id), density_(density), refraction_(refraction), attenuation_(attenuation), iceDepth_(iceDepth) {}
 
         double density(double z_m) const { return density_.density(z_m); } 
         double attenuation(double z_m, double f_GHz = 0.3) const { return attenuation_.attenuation(z_m,f_GHz); } 
         double n(double z_m) const { return refraction_.n(z_m); } 
+
+        double iceDepth() const { return iceDepth_; } 
+        const DensityModel & densityModel() const { return density_ ; }
+        const RefractionModel & refractionModel() const { return refraction_ ; }
+        const AttenuationModel & attenuationModel() const { return attenuation_ ; }
 
         /** Options:   
          * RHO  -> density vs depth
@@ -80,6 +90,7 @@ namespace nurfana
         const DensityModel & density_; 
         const RefractionModel & refraction_; 
         const AttenuationModel & attenuation_; 
+        double iceDepth_; 
         ClassDef(Model,1); 
     }; 
 
@@ -92,6 +103,10 @@ namespace nurfana
           : m_(m) { } 
 
         double n(double z_m) const { return m_.density(z_m) * 0.845 + 1; } 
+        virtual int getDepthsWithN(double n, std::vector<double> & depths) const
+        {
+          return m_.getDepthsWithDensity( (n-1)/0.845, depths); 
+        }
     private: 
         const  DensityModel & m_; 
     }; 
@@ -103,6 +118,10 @@ namespace nurfana
           : m_(m) { } 
 
         double n(double z_m) const { return (m_.n(z_m)-1) / 0.845; } 
+        virtual int getDepthsWithDensity(double rho, std::vector<double> & depths) const
+        {
+          return m_.getDepthsWithN( rho * 0.845 + 1, depths); 
+        }
 
     private: 
         const RefractionModel & m_; 
@@ -119,6 +138,9 @@ namespace nurfana
          : a0_(a0), a1_(a1), b1_(b1) { }
 
         virtual double n(double z_m) const { return a0_ + a1_ * (1-exp(-b1_*z_m)); } 
+        virtual int getDepthsWithN(double N, std::vector<double> & depths) const ; 
+
+ 
       private: 
         double a0_; 
         double a1_; 
@@ -128,11 +150,12 @@ namespace nurfana
     class ExponentialDensityModel : public DensityModel 
     {
       public: 
-        /** Creates an index of refraction model with p= a0 + a1(1 - exp(-b1 z) */ 
+        /** Creates a density model with p= a0 + a1(1 - exp(-b1 z) */ 
         ExponentialDensityModel(double a0 = 0.37415, double a1 = 0.562385, double b1 = 0.01535) 
          : a0_(a0), a1_(a1), b1_(b1) { }
 
         virtual double density(double z_m) const { return a0_ + a1_ * (1-exp(-b1_*z_m)); } 
+        virtual int getDepthsWithDensity(double rho, std::vector<double> & depths) const;
       private: 
         double a0_; 
         double a1_; 
