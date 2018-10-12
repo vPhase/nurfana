@@ -1,6 +1,7 @@
 #include "nurfana/TimeRepresentation.h" 
 #include "nurfana/FrequencyRepresentation.h" 
 #include "nurfana/FFT.h" 
+#include "nurfana/Logging.h"  
 
 #include "TGraph.h" 
 #include "TH1.h" 
@@ -288,7 +289,7 @@ namespace nurfana
     dt_ = dt ?: u.nominalDT() ?: (last - first) / (u.N() - 1); 
     size_t n = u.N() ?  ceil((last-first)/dt_) : 0; 
     if (n) y_.resize(n); 
-    else fprintf(stderr, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
+    else log::out(log::LOG_WARN, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
     if (u.amIReallyEven()  && (u.N() > 1 && dt == u.t(1) - u.t(0)))
     {
       //I can just copy... 
@@ -312,7 +313,7 @@ namespace nurfana
     size_t n = u.N() ?  ceil((last-first)/dt_) : 0; 
 
     if (n) y_.resize(n); 
-    else fprintf(stderr, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
+    else log::out(log::LOG_WARN, "Warning: Trying to make an EvenRepresentation out of a empty uneven representation!"); 
 
     if (u.amIReallyEven()  && (u.N() > 1 && dt_ == u.t(1) - u.t(0)))
     {

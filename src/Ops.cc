@@ -1,4 +1,5 @@
 #include "nurfana/SignalOps.h" 
+#include "nurfana/Logging.h" 
 
 namespace nurfana
 {
@@ -25,7 +26,7 @@ namespace nurfana
 
       if (A->freq().Nt() != B->freq().Nt())
       {
-        fprintf(stderr,"correlation does not handle the case where A and B are of different lengths (%zu vs. %zu)!\n", A->freq().Nt(), B->freq().Nt()); 
+        log::out(log::LOG_WARN,"correlation does not handle the case where A and B are of different lengths (%zu vs. %zu)!\n", A->freq().Nt(), B->freq().Nt()); 
         return 0; 
       }
 

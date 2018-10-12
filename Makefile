@@ -11,7 +11,8 @@
 ## These are the files that must be built 
 SRCS := FFT.cc FrequencyRepresentation.cc Interpolation.cc TimeRepresentation.cc Interpolation2D.cc\
 				IceModel.cc Digitizer.cc Antenna.cc Waveform.cc \
-				Response.cc PhasedArrayReader.cc  Impulsivity.cc Mapper.cc Ops.cc
+				Response.cc PhasedArrayReader.cc  Impulsivity.cc Mapper.cc Ops.cc\
+				Logging.cc
 
 CUBATURE_SRCS := hcubature.c pcubature.c
 
@@ -19,12 +20,12 @@ CUBATURE_SRCS := hcubature.c pcubature.c
 INCLUDES := Angle.h Channel.h Event.h FFT.h FrequencyRepresentation.h \
 						Interpolation.h TimeRepresentation.h Waveform.h Antenna.h \
 						Interpolation2D.h IceModel.h Digitizer.h PhasedArray.h \
-						Response.h Event.h Mapper.h SignalOps.h
+						Response.h Event.h Mapper.h SignalOps.h Logging.h
 
 all: shared 
 
 m.config: 
-	@echo "**** COPYING m.config.example to m.config ******" 
+	@echo "***** COPYING m.config.example to m.config ******" 
 	@cp m.config.example m.config
 
 include m.config 
