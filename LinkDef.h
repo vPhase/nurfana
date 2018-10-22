@@ -31,6 +31,7 @@
 #pragma link C++ class nurfana::Mapper+; 
 #pragma link C++ class nurfana::ElevationMapper+; 
 
+
 // correlation and combining
 #pragma link C++ class nurfana::Correlator+; 
 #pragma link C++ class nurfana::Combiner+; 
@@ -51,6 +52,8 @@
 
 //Digitizer 
 #pragma link C++ class nurfana::Digitizer; 
+
+// Deconvolution
 
 // Other stuff
 #pragma link C++ class nurfana::Antenna+; 

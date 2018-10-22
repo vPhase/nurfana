@@ -20,7 +20,7 @@ namespace nurfana {
     public: 
 
       /* Returns the complex response at a frequency */ 
-      virtual std::complex<double> H( double f) const  { (void) f;return 1; } 
+      virtual std::complex<double> H( double f) const  { (void) f; return 1; } 
 
       virtual double G( double f) const  { return std::abs(H(f)); }
       virtual double ph( double f) const  { return std::arg(H(f)); }
@@ -56,22 +56,42 @@ namespace nurfana {
 
   /** An analytic response function from 
    * poles and zeroes (in the s plane); 
-   *  This allows exact modeling of e.g. analog filters
+   *
+   *  This allows exact modeling of e.g. analog filters. 
    * 
   */ 
   class AnalyticResponse : public Response
   {
     public: 
-//      AnalyticResponse(unsigned npoles, const std::complex<double> * poles,
- //                      unsigned nzeroes = 0, const std::complex<double> * zeroes = 0, double gain = 1 ) { ; } 
 
-      std::complex<double> H(double f) const { (void) f;  return 0; } 
+     AnalyticResponse(unsigned npoles, const std::complex<double> * poles,
+                      unsigned nzeroes = 0, const std::complex<double> * zeroes = 0, double gain = 1 )
+       : init_with_(ZPK),p_(poles, poles+npoles), z_(zeroes, zeroes+nzeroes), g_(gain) { ; } 
+
+     AnalyticResponse( unsigned nb, const double * b,
+                       unsigned na, const double * a)
+       : init_with_(BA) ,b_(b, b+nb), a_(a, a+na) {g_ = 0 ; } 
+
+
+      std::complex<double> H(double f) const;
+
+      const double * getACoeffs() const; 
+      const double * getBCoeffs() const; 
+      double getGain() const; 
+      const std::complex<double> * getPoles() const; 
+      const std::complex<double> * getZeroes() const; 
      private: 
-      int npoles; 
-      int nzeroes; 
-      std::vector<std::complex<double> > poles; 
-      std::vector<std::complex<double> > zeroes; 
-      double gain; 
+
+      enum {ZPK, BA} init_with_; 
+      mutable std::vector<std::complex<double> > p_; 
+      mutable std::vector<std::complex<double> > z_; 
+      mutable double g_; 
+      mutable std::vector<double> b_;
+      mutable std::vector<double> a_;
+
+      void zpk2ba() const; 
+      void ba2zpk() const; 
+
 
   }; 
 
@@ -94,12 +114,16 @@ namespace nurfana {
         MAXENV
       }; 
 
-      /* Here we start from a time-domain (an impulse response) */ 
-//      InterpolatingResponse(const TimeRepresentation & t, TDPhaseOption phase_option = KEEP); 
+     /* Here we start from a time-domain (an impulse response).
+      *
+      *
+      *  TDPhaseOption determines how the phase is set for the time representation
+      *
+      **/ 
+     InterpolatingResponse(const TimeRepresentation & t, TDPhaseOption phase_option = KEEP); 
 
     private: 
-      FrequencyRepresentation _f; 
-
+     FrequencyRepresentation _f; 
 
   }; 
 

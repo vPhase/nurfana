@@ -30,7 +30,7 @@ namespace nurfana
     if (!antennas.count(depth))
     {
       TLockGuard l(&m); 
-      antennas[depth] = new Antenna(0,0,-depth,0); 
+      antennas[depth] = new Antenna(0,0,-depth,Antenna::VPOL); 
     }
 
     return antennas[depth]; 

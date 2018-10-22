@@ -40,9 +40,9 @@ namespace nurfana
   FrequencyRepresentation::FrequencyRepresentation(size_t N, 
                                                    const std::complex<double> * Y, 
                                                    double df, double t0) 
-    : TNamed("freq","Frequency Representation"), Nt_(N), t0_(t0), df_(df), Y_(Y, Y + N/2+1)
+    : TNamed("freq","Frequency Representation"), Nt_(N), t0_(t0), df_(df), Y_(N/2+1) 
   {
-
+    if (Y) std::copy( Y, Y+N/2+1, Y_.begin()); 
     invalidate(); 
 
   }

@@ -27,7 +27,6 @@ namespace nurfana
                               const std::complex<double>  * Y, 
                               double delta_freq, double t0 = 0); 
 
-
       FrequencyRepresentation(const EvenRepresentation & even); 
       FrequencyRepresentation(const FrequencyRepresentation & freq); 
 
@@ -68,6 +67,8 @@ namespace nurfana
 
       /** Change size */
       void setNt(size_t new_N); 
+      void setDf(double df) { df_ = df; }
+      void setT0(double t0) { t0_ = t0; }
       void pad(size_t n) { setNt( (1+n) * Nt()); }
 
       double mag(size_t i, bool dB = false) const;

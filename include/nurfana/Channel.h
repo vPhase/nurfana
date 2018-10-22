@@ -6,6 +6,10 @@
  *
  * It also takes an antenna, response, and digitizer, but since those
  * are presumably reused a lot, it doesn't own the memory for that. 
+ *
+ * It also has a "timing group," which is an integer defining a class of channels
+ * whose times may accurately be compared (for e.g. correlation). 
+ *
  */
 
 #include "nurfana/Waveform.h" 
@@ -24,7 +28,8 @@ namespace nurfana
              Waveform* wf,
              const Antenna*  antenna,
              const Response* response,
-             const Digitizer* digitizer
+             const Digitizer* digitizer, 
+             int timing_group = 0
              )
         : TNamed(name,name) 
       {
@@ -32,6 +37,7 @@ namespace nurfana
         ant_ = antenna; 
         response_ = response; 
         digitizer_ = digitizer; 
+        timing_group_ =timing_group; 
       }
       
       Waveform * wf() { return wf_; } 
@@ -46,6 +52,7 @@ namespace nurfana
       const Antenna*  ant_; 
       const Response* response_; 
       const Digitizer* digitizer_; 
+      int timing_group_; 
 
       ClassDef(Channel,1); 
   }; 

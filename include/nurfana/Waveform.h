@@ -68,11 +68,28 @@ namespace nurfana
       const EvenRepresentation & even() const; 
       EvenRepresentation & updateEven(); 
 
+
       const UnevenRepresentation & uneven() const; 
       UnevenRepresentation & updateUneven() ; 
 
       const FrequencyRepresentation & freq() const; 
       FrequencyRepresentation & updateFreq() ; 
+
+
+      //casting operators, equivalent to the above
+      //
+      operator const UnevenRepresentation& () { return uneven(); } 
+      operator UnevenRepresentation& () { return updateUneven(); } 
+      
+      operator const EvenRepresentation& () { return even(); } 
+      operator EvenRepresentation& () { return updateEven(); } 
+      
+      // prefer even for TimeRepresentation 
+      operator const TimeRepresentation& () { return even(); } 
+      operator TimeRepresentation& () { return updateEven(); } 
+
+      operator const FrequencyRepresentation& () { return freq(); } 
+      operator FrequencyRepresentation& () { return updateFreq(); } 
 
 
       virtual ~Waveform(); 

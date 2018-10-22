@@ -20,7 +20,7 @@ namespace nurfana
       PhasedArrayReader(const char * dir, int nruns, const int *runs) { setupChain(dir,nruns,runs);  } 
       PhasedArrayReader(const char * dir, int run) { setupChain(dir,1,&run);  } 
 
-      virtual int nEvents() const { return ch_ev_.GetEntries(); }
+      virtual int nEvents() const { return ch_hd_.GetEntries(); }
 
     protected:
       virtual int loadEvent(int i); 
